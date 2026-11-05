@@ -4,7 +4,7 @@ An npm workspace monorepo. Run commands from this directory (the Git repository 
 
 ```text
 apps/
-  mobile/    Expo SDK 58 app (blank home screen)
+  mobile/    Expo SDK 58 app
   api/       Hono Cloudflare Worker and Neon configuration
 ```
 
@@ -14,16 +14,27 @@ Requires Node.js 22.13+ and npm. Install once at the repository root:
 
 ```sh
 npm install
-npm run dev:api
-# In another terminal:
-npm run dev:mobile
+npm run dev
+# Or run each server separately:
+# npm run dev:api
+# npm run dev:mobile
 ```
 
-The API listens on port 3001; Expo normally uses 8081. `npm run ios`,
-`npm run android`, and `npm run web` start Expo for the selected platform.
-The mobile app currently has no API UI. When adding requests, use your deployed
-API URL in production and your computer’s LAN address for physical-device development;
-localhost on a phone refers to the phone. Only public API URLs belong in mobile env.
+Copy each workspace's `.env.example` to `.env.local` and configure it before starting.
+Ports are defined only in environment files:
+
+- `apps/api/.env.local`: `API_HOST`, `API_PORT`, `API_INSPECTOR_PORT`, and `BETTER_AUTH_URL`.
+- `apps/mobile/.env.local`: `EXPO_PORT` and `EXPO_PUBLIC_API_URL`.
+- API `CORS_ORIGINS` must match the frontend origin, including `EXPO_PORT`.
+
+The startup scripts load `.env` then `.env.local`; exported environment variables take
+precedence. Missing or invalid ports fail startup, and occupied ports are rejected.
+For direct HTTP development `BETTER_AUTH_URL` must use `API_PORT`; an HTTPS tunnel may use its public origin. `npm run ios`, `npm run android`, and
+`npm run web` use the same environment-defined Expo port.
+
+For physical devices, set `EXPO_PUBLIC_API_URL` and `BETTER_AUTH_URL` to your
+computer's LAN address and set `API_HOST=0.0.0.0` to make the API reachable on your local network. Only public
+API URLs belong in mobile env; keep database credentials in the API workspace.
 
 ## Backend and Neon
 
@@ -35,7 +46,7 @@ environment. Use `.env.example` as a list of backend variables.
 
 - `DATABASE_URL`: pooled connection for app queries, used only by the API.
 - `DATABASE_URL_UNPOOLED`: reserved for migrations and backups.
-- Local port: 3001, configured in the API dev script.
+- `API_PORT` and `API_INSPECTOR_PORT`: local Worker and inspector ports.
 - `CORS_ORIGINS`: comma-separated permitted web origins. Set your web origin in production.
 
 The existing Neon HTTP driver is retained. The API exposes:
@@ -44,8 +55,9 @@ The existing Neon HTTP driver is retained. The API exposes:
 - `GET /api/database`: read-only Neon connection check.
 
 ```sh
-curl -f http://localhost:3001/health
-curl -f http://localhost:3001/api/database
+# After exporting BETTER_AUTH_URL from your API environment:
+curl -f "$BETTER_AUTH_URL/health"
+curl -f "$BETTER_AUTH_URL/api/database"
 npm run neon:deploy
 ```
 
@@ -70,7 +82,10 @@ The Hono entry point is `apps/api/src/index.ts`; Neon queries live in
 Worker name (`my-app`). For production, configure `DATABASE_URL` as a Cloudflare
 Worker secret and `CORS_ORIGINS` for your web origin, then run
 `npm run deploy --workspace @choose-one/api`. Local Wrangler development reads
-the existing ignored `apps/api/.env.local` automatically.
+secrets from the ignored `apps/api/.dev.vars`; keep its auth and database values
+synchronized with `apps/api/.env.local`.
 Run Expo/EAS native build commands from `apps/mobile`; install dependencies from
 the workspace root. The mobile app retains its existing Expo project ID and assets.
 Shared packages can be introduced later when there is code both apps need.
+
+Google and Apple sign-in setup and development-build requirements: [Authentication](apps/api/AUTH.md).

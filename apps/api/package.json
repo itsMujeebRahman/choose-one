@@ -4,21 +4,27 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --port 3001",
-    "start": "wrangler dev --port 3001",
+    "dev": "node ../../scripts/dev-server.mjs api",
+    "start": "node ../../scripts/dev-server.mjs api",
     "build": "wrangler deploy --dry-run --outdir dist",
     "typecheck": "tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "neon:deploy": "neon deploy"
+    "neon:deploy": "neon deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
   },
   "dependencies": {
+    "@better-auth/expo": "^1.7.18",
     "@neon/config": "^1.11.3",
     "@neon/env": "^1.6.15",
     "@neondatabase/serverless": "^1.2.0",
+    "better-auth": "^1.7.18",
+    "drizzle-orm": "^0.45.4",
     "hono": "^4.13.16"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.11",
     "wrangler": "^4.110.0"
   }
 }

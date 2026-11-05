@@ -5,14 +5,9 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "lib": [
-      "ESNext",
-      "WebWorker"
-    ],
+    "lib": ["ESNext", "WebWorker"],
     "types": [],
     "noEmit": true
   },
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }

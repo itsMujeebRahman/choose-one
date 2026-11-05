@@ -19,12 +19,14 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint apps --ignore-pattern \"**/dist/**\"",
     "start:api": "npm run start --workspace @choose-one/api --",
-    "neon:deploy": "npm run neon:deploy --workspace @choose-one/api"
+    "neon:deploy": "npm run neon:deploy --workspace @choose-one/api",
+    "dev": "concurrently --kill-others --names api,mobile \"npm run dev:api\" \"npm run dev:mobile\""
   },
   "devDependencies": {
-    "typescript": "~6.0.3",
+    "@types/node": "^22.0.0",
+    "concurrently": "^10.0.6",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",
-    "@types/node": "^22.0.0"
+    "typescript": "~6.0.3"
   }
 }

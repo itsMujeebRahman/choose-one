@@ -1,0 +1,29 @@
+:root {
+  --color-background: #f5f4f9;
+  --color-surface: #ffffff;
+  --color-ink: #131313;
+  --color-muted: #686560;
+  --color-peach: #ebdcd2;
+  --color-peach-light: #f0e6e0;
+  --color-lavender: #c0c8f5;
+  --color-yellow: #efdf95;
+  --color-sage: #90986c;
+  --color-blue: #85a3d6;
+  --color-coral: #d69683;
+  --color-mint: #cddfdd;
+  --color-border: #e5e2e3;
+  --color-error: #9c332b;
+  --font-body: "Outfit_400Regular", sans-serif;
+  --font-medium: "Outfit_500Medium", sans-serif;
+  --font-heading: "Outfit_600SemiBold", sans-serif;
+  --radius-small: 16px;
+  --radius-medium: 24px;
+  --radius-large: 36px;
+  --radius-pill: 999px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+}

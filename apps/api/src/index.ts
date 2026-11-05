@@ -1,25 +1,51 @@
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { checkDatabase } from "./database";
+import { allowedOrigins, createAuth, type AuthBindings } from "./auth";
 
-import { checkDatabase } from './database';
-
-type Bindings = {
-  DATABASE_URL?: string;
-  CORS_ORIGINS?: string;
-};
-
-const app = new Hono<{ Bindings: Bindings }>();
-
-app.use('*', async (c, next) => {
-  const origins = (c.env.CORS_ORIGINS ?? 'http://localhost:8081,http://localhost:8082,http://localhost:8083')
-    .split(',').map((origin) => origin.trim());
-  return cors({ origin: origins, allowMethods: ['GET', 'OPTIONS'] })(c, next);
+const app = new Hono<{ Bindings: AuthBindings }>();
+app.use("*", async (c, next) =>
+  cors({
+    origin: allowedOrigins(c.env),
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "expo-origin",
+      "x-skip-oauth-proxy",
+    ],
+    credentials: true,
+  })(c, next),
+);
+app.get("/", (c) => c.text("Choose One API"));
+app.get("/health", (c) => c.json({ ok: true }));
+app.get("/api/database", (c) => checkDatabase(c.env.DATABASE_URL));
+app.on(["GET", "POST"], "/api/auth/*", async (c) => {
+  if (
+    !c.env.DATABASE_URL ||
+    !c.env.BETTER_AUTH_SECRET ||
+    !c.env.BETTER_AUTH_URL
+  ) {
+    return c.json({ message: "Authentication is not configured." }, 503);
+  }
+  if (c.req.path === "/api/auth/sign-in/social") {
+    const body = await c.req.raw.clone().json().catch(() => null);
+    if (body?.provider === "google" && (!c.env.GOOGLE_CLIENT_ID || !c.env.GOOGLE_CLIENT_SECRET)) {
+      return c.json({ message: "Google sign-in is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the API environment." }, 503);
+    }
+    if (body?.provider === "apple" && (!c.env.APPLE_CLIENT_ID || !c.env.APPLE_CLIENT_SECRET)) {
+      return c.json({ message: "Apple sign-in is not configured. Set APPLE_CLIENT_ID and APPLE_CLIENT_SECRET in the API environment." }, 503);
+    }
+  }
+  return createAuth(c.env).handler(c.req.raw);
 });
-
-app.get('/', (c) => c.text('Hello Hono!'));
-app.get('/health', (c) => c.json({ ok: true }));
-app.get('/api/database', (c) => checkDatabase(c.env.DATABASE_URL));
-app.notFound((c) => c.json({ error: 'Not found.' }, 404));
-app.onError((_, c) => c.json({ error: 'Internal server error.' }, 500));
-
+app.get("/api/me", async (c) => {
+  const session = await createAuth(c.env).api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session) return c.json({ error: "Please sign in." }, 401);
+  return c.json({ user: session.user });
+});
+app.notFound((c) => c.json({ error: "Not found." }, 404));
+app.onError((_, c) => c.json({ error: "Internal server error." }, 500));
 export default app;
