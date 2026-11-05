@@ -15,6 +15,34 @@
       "when": 1793903891199,
       "tag": "0001_adorable_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793909266903,
+      "tag": "0002_modern_firestar",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793909484415,
+      "tag": "0003_polite_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793909916389,
+      "tag": "0004_jazzy_mad_thinker",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793910893956,
+      "tag": "0005_bored_thing",
+      "breakpoints": true
     }
   ]
 }

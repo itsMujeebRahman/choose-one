@@ -1,13 +1,27 @@
-import { useErrorToast } from "../hooks/use-error-toast";
+import {
+  useAppSession,
+  startPreviewSession,
+  isAuthPreview,
+} from "../../lib/session";
+import { useErrorToast } from "../../hooks/use-error-toast";
 import SocialIcon from "./social-icon";
 import { toast } from "sonner-native";
 import { useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { authClient } from "../lib/auth-client";
-import { colors as c, fonts as f, radius } from "../theme/tokens";
+import { authClient } from "../../lib/auth-client";
+import { colors as c, fonts as f, radius } from "../../theme/tokens";
 
 export function MoodGarden({ compact = false }: { compact?: boolean }) {
   return (
@@ -47,18 +61,30 @@ export function MoodGarden({ compact = false }: { compact?: boolean }) {
 }
 export default function AuthScreen() {
   const { width } = useWindowDimensions();
-  const { refetch } = authClient.useSession();
+  const { refetch } = useAppSession();
   const wide = width >= 900;
   const [busy, setBusy] = useState<"google" | "apple" | null>(null);
   const params = useLocalSearchParams<{ error?: string }>();
-  useErrorToast(params.error, "Sign-in wasn’t completed. Please try again.", "auth-callback-error");
+  useErrorToast(
+    params.error,
+    "Sign-in wasn’t completed. Please try again.",
+    "auth-callback-error",
+  );
   function reportError(message: string) {
     toast.error(message);
   }
   async function signIn(provider: "google" | "apple") {
     if (busy) return;
+    if (isAuthPreview) {
+      if (provider === "google" && startPreviewSession())
+        toast.success("Welcome, Max!");
+      else toast.info("Use Google to open the temporary test account.");
+      return;
+    }
     if (Platform.OS !== "web" && Constants.appOwnership === "expo") {
-      reportError("Social sign-in needs a development build. Open Choose One in its development build to continue.");
+      reportError(
+        "Social sign-in needs a development build. Open Choose One in its development build to continue.",
+      );
       return;
     }
     setBusy(provider);
@@ -68,45 +94,121 @@ export default function AuthScreen() {
         callbackURL: Platform.OS === "web" ? "/" : "chooseone:///",
         errorCallbackURL: Platform.OS === "web" ? "/auth" : "chooseone:///auth",
       });
-      if (result.error) reportError(result.error.message ?? "Sign-in couldn’t start. Please try again.");
+      if (result.error)
+        reportError(
+          result.error.message ?? "Sign-in couldn’t start. Please try again.",
+        );
       else if (Platform.OS !== "web") {
-        const restored = await authClient.getSession({ query: { disableCookieCache: true } });
-        if (restored.error) reportError("Couldn’t restore your session. Please try again.");
-        else if (!restored.data) reportError("Sign-in wasn’t completed. Try again when you’re ready.");
+        const restored = await authClient.getSession({
+          query: { disableCookieCache: true },
+        });
+        if (restored.error)
+          reportError("Couldn’t restore your session. Please try again.");
+        else if (!restored.data)
+          reportError("Sign-in wasn’t completed. Try again when you’re ready.");
         await refetch();
       }
-    } catch { reportError("We couldn’t connect to sign-in. Please try again."); }
-    finally { setBusy(null); }
+    } catch {
+      reportError("We couldn’t connect to sign-in. Please try again.");
+    } finally {
+      setBusy(null);
+    }
   }
-  return <SafeAreaView style={s.safe}>
-    <ScrollView contentContainerStyle={[s.page, wide && s.widePage]}>
-      <View style={[s.story, wide && s.wideStory]}>
-        <View style={s.brand}><Text style={s.brandMark}>❖</Text><Text style={s.brandName}>choose one</Text><View style={s.brandDot}/></View>
-        {wide && <View style={s.storyCopy}><Text style={s.eyebrow}>A LITTLE SPACE FOR YOU</Text><Text style={s.storyTitle}>Big feelings.{"\n"}Small steps.{"\n"}<Text style={{ fontFamily: f.semibold }}>Your own pace.</Text></Text><Text style={s.storyBody}>You don’t have to have it all figured out.{"\n"}Just start with one little choice.</Text></View>}
-        <MoodGarden compact={!wide}/>
-        {wide && <View style={s.storyFooter}><Text style={s.pill}>A softer kind of everyday</Text><Text style={s.footerStar}>✳</Text></View>}
-      </View>
-      <View style={[s.formSide, wide && s.wideFormSide]}>
-        <View style={s.topLine}><Text style={s.step}>YOUR LITTLE RESET</Text><Text style={s.tinyFlower}>✳</Text></View>
-        <Text style={s.title}>A little space,{"\n"}<Text style={s.bold}>just for you.</Text></Text>
-        <Text style={s.subtitle}>A fresh start or a familiar hello. Choose Google or Apple and make yourself at home.</Text>
-        {(["google", "apple"] as const).map((provider, index) => (
-          <Pressable key={provider} accessibilityRole="button" accessibilityLabel={`Sign in with ${provider === "google" ? "Google" : "Apple"}`} disabled={!!busy} onPress={() => signIn(provider)} style={({ pressed }) => [s.submit, s.socialButton, index > 0 && { marginTop: 12 }, (pressed || busy) && { opacity: .65 }]}>
-            {busy === provider ? <ActivityIndicator color={c.ink}/> : <>
-              <View style={s.socialIcon}><SocialIcon provider={provider}/></View>
-              <Text style={[s.submitText, { color: c.ink }]}>Sign in with {provider === "google" ? "Google" : "Apple"}</Text>
-            </>}
-          </Pressable>
-        ))}
-        <Text style={s.note}>No password to remember. Just you.</Text>
-        <View style={s.bottomNote}><View style={s.miniDot}/><Text style={s.bottomText}>A little kinder to yourself, every day.</Text></View>
-      </View>
-    </ScrollView>
-  </SafeAreaView>;
+  return (
+    <SafeAreaView style={s.safe}>
+      <ScrollView contentContainerStyle={[s.page, wide && s.widePage]}>
+        <View style={[s.story, wide && s.wideStory]}>
+          <View style={s.brand}>
+            <Text style={s.brandMark}>❖</Text>
+            <Text style={s.brandName}>choose one</Text>
+            <View style={s.brandDot} />
+          </View>
+          {wide && (
+            <View style={s.storyCopy}>
+              <Text style={s.eyebrow}>A LITTLE SPACE FOR YOU</Text>
+              <Text style={s.storyTitle}>
+                Big feelings.{"\n"}Small steps.{"\n"}
+                <Text style={{ fontFamily: f.semibold }}>Your own pace.</Text>
+              </Text>
+              <Text style={s.storyBody}>
+                You don’t have to have it all figured out.{"\n"}Just start with
+                one little choice.
+              </Text>
+            </View>
+          )}
+          <MoodGarden compact={!wide} />
+          {wide && (
+            <View style={s.storyFooter}>
+              <Text style={s.pill}>A softer kind of everyday</Text>
+              <Text style={s.footerStar}>✳</Text>
+            </View>
+          )}
+        </View>
+        <View style={[s.formSide, wide && s.wideFormSide]}>
+          <View style={s.topLine}>
+            <Text style={s.step}>YOUR LITTLE RESET</Text>
+            <Text style={s.tinyFlower}>✳</Text>
+          </View>
+          <Text style={s.title}>
+            A little space,{"\n"}
+            <Text style={s.bold}>just for you.</Text>
+          </Text>
+          <Text style={s.subtitle}>
+            A fresh start or a familiar hello. Choose Google or Apple and make
+            yourself at home.
+          </Text>
+          {(["google", "apple"] as const).map((provider, index) => (
+            <Pressable
+              key={provider}
+              accessibilityRole="button"
+              accessibilityLabel={`Sign in with ${provider === "google" ? "Google" : "Apple"}`}
+              disabled={!!busy}
+              onPress={() => signIn(provider)}
+              style={({ pressed }) => [
+                s.submit,
+                s.socialButton,
+                index > 0 && { marginTop: 12 },
+                (pressed || busy) && { opacity: 0.65 },
+              ]}
+            >
+              {busy === provider ? (
+                <ActivityIndicator color={c.ink} />
+              ) : (
+                <>
+                  <View style={s.socialIcon}>
+                    <SocialIcon provider={provider} />
+                  </View>
+                  <Text style={[s.submitText, { color: c.ink }]}>
+                    Sign in with {provider === "google" ? "Google" : "Apple"}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          ))}
+          <Text style={s.note}>No password to remember. Just you.</Text>
+          <View style={s.bottomNote}>
+            <View style={s.miniDot} />
+            <Text style={s.bottomText}>
+              A little kinder to yourself, every day.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 const s = StyleSheet.create({
-  socialButton: { backgroundColor: c.surface, borderColor: c.border, borderWidth: 1.5 },
-  socialIcon: { width: 24, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  socialButton: {
+    backgroundColor: c.surface,
+    borderColor: c.border,
+    borderWidth: 1.5,
+  },
+  socialIcon: {
+    width: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
   flex: { flex: 1 },
   safe: { flex: 1, backgroundColor: c.background },
   page: {

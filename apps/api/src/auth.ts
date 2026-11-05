@@ -13,6 +13,7 @@ export type AuthBindings = {
   GOOGLE_CLIENT_SECRET?: string;
   APPLE_CLIENT_ID?: string;
   APPLE_CLIENT_SECRET?: string;
+  LOCAL_PREVIEW_USER_ID?: string;
 };
 export function allowedOrigins(env: AuthBindings) {
   return (env.CORS_ORIGINS ?? "")
@@ -35,17 +36,39 @@ export function createAuth(env: AuthBindings) {
     }),
     emailAndPassword: { enabled: false },
     socialProviders: {
-      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET ? {
-        google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET },
-      } : {}),
-      ...(env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET ? {
-        apple: { clientId: env.APPLE_CLIENT_ID, clientSecret: env.APPLE_CLIENT_SECRET },
-      } : {}),
+      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+        ? {
+            google: {
+              clientId: env.GOOGLE_CLIENT_ID,
+              clientSecret: env.GOOGLE_CLIENT_SECRET,
+            },
+          }
+        : {}),
+      ...(env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET
+        ? {
+            apple: {
+              clientId: env.APPLE_CLIENT_ID,
+              clientSecret: env.APPLE_CLIENT_SECRET,
+            },
+          }
+        : {}),
     },
-    user: { additionalFields: {
-      nameConfirmed: { type: "boolean", defaultValue: false, required: false, input: true },
-    } },
-    trustedOrigins: ["chooseone://", "chooseone://*", "https://appleid.apple.com", ...allowedOrigins(env)],
+    user: {
+      additionalFields: {
+        nameConfirmed: {
+          type: "boolean",
+          defaultValue: false,
+          required: false,
+          input: true,
+        },
+      },
+    },
+    trustedOrigins: [
+      "chooseone://",
+      "chooseone://*",
+      "https://appleid.apple.com",
+      ...allowedOrigins(env),
+    ],
     plugins: [expo()],
   });
 }

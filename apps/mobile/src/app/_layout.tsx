@@ -17,7 +17,11 @@ export default function RootLayout() {
     Outfit_500Medium,
     Outfit_600SemiBold,
   });
-  useErrorToast(error, "Couldn’t load the app font. Using the default font.", "font-error");
+  useErrorToast(
+    error,
+    "Couldn’t load the app font. Using the default font.",
+    "font-error",
+  );
   if (!loaded && !error)
     return (
       <View
@@ -32,15 +36,26 @@ export default function RootLayout() {
     );
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Slot />
-      <Toaster position="top-center" theme="light" toastOptions={{
-        style: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 16 },
-        titleStyle: { fontFamily: fonts.medium, color: colors.ink },
-        descriptionStyle: { fontFamily: fonts.regular, color: colors.muted },
-      }} />
-    </SafeAreaProvider>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <Slot />
+        <Toaster
+          position="top-center"
+          theme="light"
+          toastOptions={{
+            style: {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderRadius: 16,
+            },
+            titleStyle: { fontFamily: fonts.medium, color: colors.ink },
+            descriptionStyle: {
+              fontFamily: fonts.regular,
+              color: colors.muted,
+            },
+          }}
+        />
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

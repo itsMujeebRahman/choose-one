@@ -89,3 +89,13 @@ the workspace root. The mobile app retains its existing Expo project ID and asse
 Shared packages can be introduced later when there is code both apps need.
 
 Google and Apple sign-in setup and development-build requirements: [Authentication](apps/api/AUTH.md).
+
+### Temporary homepage testing
+
+`EXPO_PUBLIC_AUTH_PREVIEW=true` in `apps/mobile/.env.local` enables a development-only
+local test session. Tap Google to enter the homepage as Max (`max@example.com`),
+skipping OAuth and username setup. Sign-out or a full app reload clears this session.
+Choice submissions can be saved to the dedicated local preview user when
+`LOCAL_PREVIEW_USER_ID` is set in the API `.dev.vars`. This local-only path does not
+grant access to other authenticated endpoints. Production builds
+always use real authentication. Set the flag to `false` and reload to resume OAuth.

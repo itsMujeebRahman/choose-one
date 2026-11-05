@@ -10,9 +10,24 @@ if (!baseURL)
 export const authClient = createAuthClient({
   baseURL,
   plugins: [
-    inferAdditionalFields({ user: { nameConfirmed: { type: "boolean", defaultValue: false, required: false, input: true } } }),
-    ...(Platform.OS === "web" ? [] : [expoClient({
-      scheme: "chooseone", storagePrefix: "chooseone", storage: SecureStore,
-    })]),
+    inferAdditionalFields({
+      user: {
+        nameConfirmed: {
+          type: "boolean",
+          defaultValue: false,
+          required: false,
+          input: true,
+        },
+      },
+    }),
+    ...(Platform.OS === "web"
+      ? []
+      : [
+          expoClient({
+            scheme: "chooseone",
+            storagePrefix: "chooseone",
+            storage: SecureStore,
+          }),
+        ]),
   ],
 });
