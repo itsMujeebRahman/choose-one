@@ -1,0 +1,2 @@
+ALTER TABLE "choice_list" DROP CONSTRAINT "choice_list_counts_valid";--> statement-breakpoint
+ALTER TABLE "choice_list" ADD CONSTRAINT "choice_list_counts_valid" CHECK ("choice_list"."option_count" between 3 and 20 AND "choice_list"."pick_count" between 0 and "choice_list"."option_count");

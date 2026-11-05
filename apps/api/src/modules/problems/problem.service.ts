@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { problem, problemOption, user } from "../../db/schema";
 import { chooseRandomOption } from "../../lib/random-choice";
@@ -130,4 +130,65 @@ export async function saveProblemChoice({
     selectedOrder: 1,
     ...chosen,
   };
+}
+
+export async function getProblemHistory(
+  connectionString: string,
+  userId: string,
+) {
+  const db = drizzle(connectionString);
+  return db
+    .select({
+      id: problem.id,
+      title: problem.title,
+      selectedOption: problemOption.label,
+      optionCount: sql<number>`(
+        select count(*)::int
+        from ${problemOption}
+        where ${problemOption.problemId} = ${problem.id}
+      )`,
+      createdAt: problem.createdAt,
+      chosenAt: problem.chosenAt,
+    })
+    .from(problem)
+    .leftJoin(
+      problemOption,
+      and(
+        eq(problemOption.problemId, problem.id),
+        eq(problemOption.isSelected, true),
+      ),
+    )
+    .where(eq(problem.userId, userId))
+    .orderBy(desc(problem.createdAt));
+}
+
+export async function getProblemDetail(
+  connectionString: string,
+  userId: string,
+  problemId: string,
+) {
+  const db = drizzle(connectionString);
+  const [choice] = await db
+    .select({
+      id: problem.id,
+      title: problem.title,
+      createdAt: problem.createdAt,
+      chosenAt: problem.chosenAt,
+    })
+    .from(problem)
+    .where(and(eq(problem.id, problemId), eq(problem.userId, userId)))
+    .limit(1);
+  if (!choice) return null;
+  const options = await db
+    .select({
+      id: problemOption.id,
+      label: problemOption.label,
+      sortOrder: problemOption.sortOrder,
+      isSelected: problemOption.isSelected,
+      selectedOrder: problemOption.selectedOrder,
+    })
+    .from(problemOption)
+    .where(eq(problemOption.problemId, problemId))
+    .orderBy(problemOption.sortOrder);
+  return { ...choice, options };
 }

@@ -1,3 +1,5 @@
+import { profileRoutes } from "./modules/profile/profile.routes";
+import { choiceListRoutes } from "./modules/choice-lists/choice-list.routes";
 import { problemRoutes } from "./modules/problems/problem.routes";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -23,6 +25,8 @@ app.get("/", (c) => c.text("Choose One API"));
 app.get("/health", (c) => c.json({ ok: true }));
 app.get("/api/database", (c) => checkDatabase(c.env.DATABASE_URL));
 app.route("/api", problemRoutes);
+app.route("/api", profileRoutes);
+app.route("/api/choice-lists", choiceListRoutes);
 app.on(["GET", "POST"], "/api/auth/*", async (c) => {
   if (
     !c.env.DATABASE_URL ||
@@ -62,13 +66,6 @@ app.on(["GET", "POST"], "/api/auth/*", async (c) => {
     }
   }
   return createAuth(c.env).handler(c.req.raw);
-});
-app.get("/api/me", async (c) => {
-  const session = await createAuth(c.env).api.getSession({
-    headers: c.req.raw.headers,
-  });
-  if (!session) return c.json({ error: "Please sign in." }, 401);
-  return c.json({ user: session.user });
 });
 app.notFound((c) => c.json({ error: "Not found." }, 404));
 app.onError((_, c) => c.json({ error: "Internal server error." }, 500));

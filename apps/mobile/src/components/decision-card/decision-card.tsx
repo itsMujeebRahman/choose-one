@@ -13,8 +13,9 @@ import ProblemTitleInput from "./problem-title-input";
 import OptionsQuestion from "./options-question";
 import EditProblemButton from "./edit-problem-button";
 import OptionsForm, { type DecisionOption } from "./options-form";
-import ChoiceLoader from "./choice-loader";
+import ChoiceLoader, { preloadChoiceSticker } from "./choice-loader";
 import ChoiceResult, { answerColors } from "./choice-result";
+import Animated, { FadeOut } from "react-native-reanimated";
 
 type Stage = "title" | "question" | "options" | "loading" | "result";
 export default function DecisionCard({
@@ -48,6 +49,9 @@ export default function DecisionCard({
     },
     [],
   );
+  useEffect(() => {
+    void preloadChoiceSticker();
+  }, []);
   function startNewDecision() {
     setEditingTitle(false);
     setTitleDraft("");
@@ -99,7 +103,7 @@ export default function DecisionCard({
     controller.current = request;
     const timeout = setTimeout(() => request.abort(), 15000);
     try {
-      // Settle the request immediately, then reveal its outcome after five seconds.
+      // Settle the request immediately, then reveal its outcome after ten seconds.
       const [result] = await Promise.all([
         chooseOption(
           problemTitle.trim(),
@@ -110,7 +114,7 @@ export default function DecisionCard({
           (value) => ({ value, error: null }),
           (error) => ({ value: null, error }),
         ),
-        new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+        new Promise<void>((resolve) => setTimeout(resolve, 10000)),
       ]);
       if (controller.current !== request) return;
       if (request.signal.aborted)
@@ -211,10 +215,14 @@ export default function DecisionCard({
                 : current,
             )
           }
-          onChoose={choose}
+          onSubmit={choose}
         />
       )}
-      {stage === "loading" && <ChoiceLoader />}
+      {stage === "loading" && (
+        <Animated.View exiting={FadeOut.duration(260)}>
+          <ChoiceLoader />
+        </Animated.View>
+      )}
       {stage === "result" && !editingTitle && (
         <ChoiceResult
           answer={answer}

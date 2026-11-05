@@ -14,12 +14,14 @@ export default function SlidingTabBackground({
   target,
   activeIndex,
   width,
+  count = 2,
 }: {
   target: NonNullable<BlurViewProps["blurTarget"]>;
   activeIndex: number;
   width: number;
+  count?: number;
 }) {
-  const tabWidth = width / 2;
+  const tabWidth = width / count;
   const offset = useSharedValue(activeIndex * tabWidth);
   useEffect(() => {
     offset.value = withTiming(activeIndex * tabWidth, {

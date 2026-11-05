@@ -10,14 +10,22 @@ type Props = {
   onChange: (id: number, value: string) => void;
   onRemove: (id: number) => void;
   onAdd: () => void;
-  onChoose: () => void;
+  onSubmit: () => void;
+  minOptions?: number;
+  maxOptions?: number;
+  submitLabel?: string;
+  caption?: string;
 };
 export default function OptionsForm({
   options,
   onChange,
   onRemove,
   onAdd,
-  onChoose,
+  onSubmit,
+  minOptions = 2,
+  maxOptions = 10,
+  submitLabel = "Choose one for me ↗",
+  caption,
 }: Props) {
   const inputs = useRef(new Map<number, ComponentRef<typeof TextInput>>());
   const pendingFocus = useRef<number | null>(null);
@@ -31,17 +39,19 @@ export default function OptionsForm({
     const next = options[index + 1];
     if (next) {
       inputs.current.get(next.id)?.focus();
-    } else if (options.length < 10 && options[index].value.trim()) {
+    } else if (options.length < maxOptions && options[index].value.trim()) {
       if (pendingFocus.current !== null) return;
       pendingFocus.current = index + 1;
       onAdd();
-    } else if (options.length === 10) {
+    } else if (options.length === maxOptions) {
       Keyboard.dismiss();
     }
   }
   return (
     <View style={s.form}>
-      <Text style={s.caption}>Your options · {options.length}/10</Text>
+      <Text style={s.caption}>
+        {caption ?? `Your options · ${options.length}/${maxOptions}`}
+      </Text>
       {options.map((option, index) => (
         <OptionInput
           key={option.id}
@@ -50,14 +60,16 @@ export default function OptionsForm({
             else inputs.current.delete(option.id);
           }}
           onNext={() => nextOption(index)}
-          isLastAllowed={index === 9}
+          isLastAllowed={index === maxOptions - 1}
           number={index + 1}
           value={option.value}
           onChange={(value) => onChange(option.id, value)}
-          onRemove={options.length > 2 ? () => onRemove(option.id) : undefined}
+          onRemove={
+            options.length > minOptions ? () => onRemove(option.id) : undefined
+          }
         />
       ))}
-      {options.length < 10 && (
+      {options.length < maxOptions && (
         <DecisionButton
           label="+ Add another option"
           secondary
@@ -65,7 +77,7 @@ export default function OptionsForm({
         />
       )}
       <View style={{ marginTop: 8 }}>
-        <DecisionButton label="Choose one for me ↗" onPress={onChoose} />
+        <DecisionButton label={submitLabel} onPress={onSubmit} />
       </View>
     </View>
   );

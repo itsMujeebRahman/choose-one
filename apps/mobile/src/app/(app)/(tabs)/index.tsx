@@ -1,3 +1,4 @@
+import ListInvitation from "../../../components/choice-lists/list-invitation";
 import { sessionCardColor } from "../../../lib/session-card-color";
 import KeyboardAwareScrollView from "../../../components/home/keyboard-aware-scroll-view";
 import ScrollPreviewCards from "../../../components/home/scroll-preview-cards";
@@ -40,6 +41,7 @@ export default function HomeScreen() {
               session.session.createdAt,
             )}
           />
+          <ListInvitation />
           <ScrollPreviewCards />
         </KeyboardAwareScrollView>
       </BlurTargetView>

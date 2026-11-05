@@ -1,26 +1,36 @@
+import KeyboardAwareScrollView from "../home/keyboard-aware-scroll-view";
 import Svg, { Path } from "react-native-svg";
 import type { ReactNode } from "react";
-import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { router, type Href } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors as c, fonts as f } from "../../theme/tokens";
 
 export default function ProfilePage({
   title,
   children,
+  backTo = "/profile",
+  backLabel = "Back to your profile",
 }: {
   title: string;
   children: ReactNode;
+  backTo?: Href;
+  backLabel?: string;
 }) {
   return (
     <SafeAreaView style={s.page}>
-      <ScrollView contentContainerStyle={s.content}>
+      <KeyboardAwareScrollView
+        headerHeight={0}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={s.content}
+      >
         <View style={s.heading}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back to your profile"
+            accessibilityLabel={backLabel}
             onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/profile")
+              router.canGoBack() ? router.back() : router.replace(backTo)
             }
             style={({ pressed }) => [s.back, pressed && { opacity: 0.6 }]}
           >
@@ -41,7 +51,7 @@ export default function ProfilePage({
           <Text style={s.title}>{title}</Text>
         </View>
         {children}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

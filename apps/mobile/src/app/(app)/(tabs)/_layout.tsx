@@ -11,10 +11,11 @@ export default function AppTabs() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const homeTarget = useRef<ComponentRef<typeof View> | null>(null);
+  const listsTarget = useRef<ComponentRef<typeof View> | null>(null);
   const profileTarget = useRef<ComponentRef<typeof View> | null>(null);
   const { width } = useWindowDimensions();
   const availableWidth = width - insets.left - insets.right;
-  const barWidth = Math.min(220, availableWidth - 48);
+  const barWidth = Math.min(280, availableWidth - 48);
   const sideGap = (availableWidth - barWidth) / 2;
   return (
     <Tabs
@@ -22,7 +23,13 @@ export default function AppTabs() {
       screenLayout={({ children, route }) =>
         Platform.OS === "android" ? (
           <BlurTargetView
-            ref={route.name === "profile" ? profileTarget : homeTarget}
+            ref={
+              route.name === "profile"
+                ? profileTarget
+                : route.name === "lists"
+                  ? listsTarget
+                  : homeTarget
+            }
             style={{ flex: 1 }}
           >
             {children}
@@ -55,8 +62,17 @@ export default function AppTabs() {
         ),
         tabBarBackground: () => (
           <SlidingTabBackground
-            target={pathname === "/profile" ? profileTarget : homeTarget}
-            activeIndex={pathname === "/profile" ? 1 : 0}
+            target={
+              pathname === "/profile"
+                ? profileTarget
+                : pathname === "/lists"
+                  ? listsTarget
+                  : homeTarget
+            }
+            activeIndex={
+              pathname === "/profile" ? 2 : pathname === "/lists" ? 1 : 0
+            }
+            count={3}
             width={barWidth}
           />
         ),
@@ -93,6 +109,15 @@ export default function AppTabs() {
           title: "Home",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="home" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="lists"
+        options={{
+          title: "Lists",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="lists" focused={focused} />
           ),
         }}
       />

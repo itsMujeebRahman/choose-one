@@ -1,4 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import Animated, {
+  Easing,
+  FadeInDown,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import DecisionButton from "./decision-button";
 import { colors as c, fonts as f } from "../../theme/tokens";
 
@@ -16,8 +25,23 @@ export default function ChoiceResult({
   colorIndex,
   onStartNew,
 }: Props) {
+  const reveal = useSharedValue(0);
+  useEffect(() => {
+    reveal.value = withTiming(1, {
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      reduceMotion: ReduceMotion.System,
+    });
+  }, [reveal]);
+  const revealStyle = useAnimatedStyle(() => ({
+    opacity: reveal.value,
+    transform: [{ translateY: (1 - reveal.value) * 14 }],
+  }));
   return (
-    <View style={s.container}>
+    <Animated.View
+      entering={FadeInDown.duration(420).springify().damping(18)}
+      style={[s.container, revealStyle]}
+    >
       <View
         style={[s.answer, { backgroundColor: answerColors[colorIndex] }]}
         accessibilityLiveRegion="polite"
@@ -35,7 +59,7 @@ export default function ChoiceResult({
         secondary
         onPress={onStartNew}
       />
-    </View>
+    </Animated.View>
   );
 }
 const s = StyleSheet.create({

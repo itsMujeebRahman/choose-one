@@ -1,0 +1,2 @@
+ALTER TABLE "choice_list_option" DROP CONSTRAINT "choice_list_option_selection_valid";--> statement-breakpoint
+ALTER TABLE "choice_list_option" ADD CONSTRAINT "choice_list_option_selection_valid" CHECK (("choice_list_option"."selected_order" IS NULL AND "choice_list_option"."selected_at" IS NULL AND "choice_list_option"."pick_request_id" IS NULL) OR ("choice_list_option"."selected_order" IS NOT NULL AND "choice_list_option"."selected_order" between 1 and 20 AND "choice_list_option"."selected_at" IS NOT NULL AND "choice_list_option"."pick_request_id" IS NOT NULL));

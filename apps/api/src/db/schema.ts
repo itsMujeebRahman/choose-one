@@ -176,3 +176,61 @@ export const problemOption = pgTable(
     ),
   ],
 );
+
+export const choiceList = pgTable(
+  "choice_list",
+  {
+    id: uuid("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 100 }).notNull(),
+    pickCount: integer("pick_count").notNull().default(0),
+    optionCount: integer("option_count").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("choice_list_owner_idx").on(t.userId, t.createdAt),
+    check(
+      "choice_list_counts_valid",
+      sql`${t.optionCount} between 3 and 20 AND ${t.pickCount} between 0 and ${t.optionCount}`,
+    ),
+    check("choice_list_title_valid", sql`length(trim(${t.title})) > 0`),
+  ],
+);
+export const choiceListOption = pgTable(
+  "choice_list_option",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => choiceList.id, { onDelete: "cascade" }),
+    label: varchar("label", { length: 120 }).notNull(),
+    sortOrder: integer("sort_order").notNull(),
+    selectedOrder: integer("selected_order"),
+    selectedAt: timestamp("selected_at", { withTimezone: true }),
+    pickRequestId: uuid("pick_request_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("choice_list_option_sort_unique").on(t.listId, t.sortOrder),
+    unique("choice_list_option_pick_unique").on(t.listId, t.selectedOrder),
+    unique("choice_list_option_request_unique").on(t.listId, t.pickRequestId),
+    check(
+      "choice_list_option_order_valid",
+      sql`${t.sortOrder} between 1 and 20`,
+    ),
+    check("choice_list_option_label_valid", sql`length(trim(${t.label})) > 0`),
+    check(
+      "choice_list_option_selection_valid",
+      sql`(${t.selectedOrder} IS NULL AND ${t.selectedAt} IS NULL AND ${t.pickRequestId} IS NULL) OR (${t.selectedOrder} IS NOT NULL AND ${t.selectedOrder} between 1 and 20 AND ${t.selectedAt} IS NOT NULL AND ${t.pickRequestId} IS NOT NULL)`,
+    ),
+  ],
+);
