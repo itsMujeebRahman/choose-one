@@ -41,3 +41,14 @@ example
 # generated native folders
 /ios
 /android
+.neon
+
+.env
+.env.*
+!.env.example
+**/ios/
+**/android/
+
+# Cloudflare local state and secrets
+.wrangler/
+.dev.vars*

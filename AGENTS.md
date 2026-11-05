@@ -1,4 +1,4 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+This is an npm workspace monorepo. `apps/mobile` is the Expo/React Native app; `apps/api` is the Hono Cloudflare Workers backend. Run installs and workspace scripts from the repository root. The Expo-specific instructions below apply to `apps/mobile`; resolve its file paths and run Expo/EAS commands from that directory. Prioritize mobile-first patterns, performance, and cross-platform compatibility for the mobile app. Keep database credentials and Neon configuration in `apps/api`.
 
 ## Expo has changed — do not trust your training data
 

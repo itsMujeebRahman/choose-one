@@ -1,56 +1,76 @@
-# Welcome to your Expo app 👋
+# Choose One
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An npm workspace monorepo. Run commands from this directory (the Git repository root).
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+apps/
+  mobile/    Expo SDK 58 app (blank home screen)
+  api/       Hono Cloudflare Worker and Neon configuration
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Development
 
-### Other setup steps
+Requires Node.js 22.13+ and npm. Install once at the repository root:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```sh
+npm install
+npm run dev:api
+# In another terminal:
+npm run dev:mobile
+```
 
-## Learn more
+The API listens on port 3001; Expo normally uses 8081. `npm run ios`,
+`npm run android`, and `npm run web` start Expo for the selected platform.
+The mobile app currently has no API UI. When adding requests, use your deployed
+API URL in production and your computer’s LAN address for physical-device development;
+localhost on a phone refers to the phone. Only public API URLs belong in mobile env.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Backend and Neon
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Neon secrets and the local branch link have moved to `apps/api/.env.local` and
+`apps/api/.neon` (both ignored). `apps/api/neon.ts` keeps the existing production
+branch policy. No remote resources or database schema were changed by this move.
+For a fresh checkout, link the existing Neon project from `apps/api` and pull its
+environment. Use `.env.example` as a list of backend variables.
 
-## Join the community
+- `DATABASE_URL`: pooled connection for app queries, used only by the API.
+- `DATABASE_URL_UNPOOLED`: reserved for migrations and backups.
+- Local port: 3001, configured in the API dev script.
+- `CORS_ORIGINS`: comma-separated permitted web origins. Set your web origin in production.
 
-Join our community of developers creating universal apps.
+The existing Neon HTTP driver is retained. The API exposes:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `GET /health`: process health.
+- `GET /api/database`: read-only Neon connection check.
+
+```sh
+curl -f http://localhost:3001/health
+curl -f http://localhost:3001/api/database
+npm run neon:deploy
+```
+
+`neon:deploy` provisions Neon services and pulls secrets into the API directory;
+it does not host the API or mobile app. Deploy them independently. On a backend
+host, configure Worker secrets rather than committing `.env.local`.
+
+## Validation and production build
+
+```sh
+npm run lint
+npm run typecheck
+npm run build
+npm run dev:api
+```
+
+The API build is a Wrangler dry-run bundle in `apps/api/dist`; no Worker is published.
+The mobile output is `apps/mobile/dist`.
+
+The Hono entry point is `apps/api/src/index.ts`; Neon queries live in
+`apps/api/src/database.ts`. `apps/api/wrangler.jsonc` retains your scaffold’s
+Worker name (`my-app`). For production, configure `DATABASE_URL` as a Cloudflare
+Worker secret and `CORS_ORIGINS` for your web origin, then run
+`npm run deploy --workspace @choose-one/api`. Local Wrangler development reads
+the existing ignored `apps/api/.env.local` automatically.
+Run Expo/EAS native build commands from `apps/mobile`; install dependencies from
+the workspace root. The mobile app retains its existing Expo project ID and assets.
+Shared packages can be introduced later when there is code both apps need.
