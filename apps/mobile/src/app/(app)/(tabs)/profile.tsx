@@ -3,24 +3,20 @@ import { router } from "expo-router";
 import ProfileHeader from "../../../components/profile/profile-header";
 import ProfileSection from "../../../components/profile/profile-section";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+import FightLoader from "../../../components/feedback/fight-loader";
 import { endSession, useAppSession } from "../../../lib/session";
-import { colors as c, fonts as f } from "../../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../../theme/tokens";
+import { useThemeStyles } from "../../../theme/theme";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const [s, c] = useThemeStyles(createStyles);
   const { data: session } = useAppSession();
   const [busy, setBusy] = useState(false);
   if (!session) return null;
@@ -71,7 +67,7 @@ export default function ProfileScreen() {
           ]}
         >
           {busy ? (
-            <ActivityIndicator color={c.ink} />
+            <FightLoader decorative style={s.buttonLoader} />
           ) : (
             <View style={s.logoutContent}>
               <Svg
@@ -95,25 +91,32 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: c.background },
-  content: { padding: 24, width: "100%", maxWidth: 560, alignSelf: "center" },
-  title: {
-    fontFamily: f.regular,
-    fontSize: 38,
-    letterSpacing: -1.5,
-    color: c.ink,
-    marginBottom: 28,
-  },
-  sections: { gap: 12, marginTop: 28 },
-  button: {
-    backgroundColor: c.peachLight,
-    borderRadius: 999,
-    minHeight: 56,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 24,
-  },
-  logoutContent: { flexDirection: "row", alignItems: "center", gap: 10 },
-  buttonText: { fontFamily: f.medium, color: c.ink, fontSize: 15 },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    page: { flex: 1, backgroundColor: c.background },
+    content: {
+      padding: 24,
+      width: "100%",
+      maxWidth: 560,
+      alignSelf: "center",
+    },
+    title: {
+      fontFamily: f.regular,
+      fontSize: 38,
+      letterSpacing: -1.5,
+      color: c.ink,
+      marginBottom: 28,
+    },
+    sections: { gap: 12, marginTop: 28 },
+    button: {
+      backgroundColor: c.peachLight,
+      borderRadius: 999,
+      minHeight: 56,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 24,
+    },
+    buttonLoader: { width: 72, maxWidth: 72 },
+    logoutContent: { flexDirection: "row", alignItems: "center", gap: 10 },
+    buttonText: { fontFamily: f.medium, color: c.ink, fontSize: 15 },
+  });

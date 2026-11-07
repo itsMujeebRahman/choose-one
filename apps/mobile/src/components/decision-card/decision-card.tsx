@@ -8,23 +8,27 @@ import { useEffect, useRef, useState } from "react";
 import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import { toast } from "sonner-native";
 import { chooseOption } from "../../lib/choose-option";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useTheme, useThemeStyles } from "../../theme/theme";
 import ProblemTitleInput from "./problem-title-input";
 import OptionsQuestion from "./options-question";
 import EditProblemButton from "./edit-problem-button";
 import OptionsForm, { type DecisionOption } from "./options-form";
-import ChoiceLoader, { preloadChoiceSticker } from "./choice-loader";
-import ChoiceResult, { answerColors } from "./choice-result";
+import ChoiceLoader, { preloadChoiceLoader } from "./choice-loader";
+import ChoiceResult, { answerColorCount } from "./choice-result";
 import Animated, { FadeOut } from "react-native-reanimated";
 
 type Stage = "title" | "question" | "options" | "loading" | "result";
 export default function DecisionCard({
   userName,
-  backgroundColor = c.peachLight,
+  backgroundColor,
 }: {
   userName: string;
   backgroundColor?: string;
 }) {
+  const [s, c] = useThemeStyles(createStyles);
+  const { isDark } = useTheme();
+  const cardColor = backgroundColor ?? c.peachLight;
   const dailyGreeting = useDailyQuestion(userName);
   const [stage, setStage] = useState<Stage>("title");
   const [problemTitle, setProblemTitle] = useState("");
@@ -36,7 +40,7 @@ export default function DecisionCard({
   ]);
   const [answer, setAnswer] = useState("");
   const [answerColorIndex, setAnswerColorIndex] = useState(() =>
-    storedAnswerColorIndex(answerColors.length),
+    storedAnswerColorIndex(answerColorCount),
   );
   const nextId = useRef(2);
   const submission = useRef<{ signature: string; id: string } | null>(null);
@@ -50,7 +54,7 @@ export default function DecisionCard({
     [],
   );
   useEffect(() => {
-    void preloadChoiceSticker();
+    void preloadChoiceLoader();
   }, []);
   function startNewDecision() {
     setEditingTitle(false);
@@ -121,7 +125,7 @@ export default function DecisionCard({
         throw new Error("The request took too long. Please try again.");
       if (result.error) throw result.error;
       setAnswer(result.value!);
-      setAnswerColorIndex(nextAnswerColorIndex(answerColors.length));
+      setAnswerColorIndex(nextAnswerColorIndex(answerColorCount));
       setStage("result");
     } catch (error) {
       if (controller.current !== request) return;
@@ -137,7 +141,7 @@ export default function DecisionCard({
     }
   }
   return (
-    <View style={[s.card, { backgroundColor }]}>
+    <View style={[s.card, { backgroundColor: cardColor }]}>
       <Text style={s.title}>{dailyGreeting}</Text>
       {stage === "title" ? (
         <ProblemTitleInput
@@ -164,6 +168,7 @@ export default function DecisionCard({
                 value={titleDraft}
                 onChangeText={setTitleDraft}
                 maxLength={100}
+                keyboardAppearance={isDark ? "dark" : "light"}
                 style={[s.problemTitle, s.titleInput]}
                 returnKeyType="done"
                 onSubmitEditing={saveTitle}
@@ -233,43 +238,44 @@ export default function DecisionCard({
     </View>
   );
 }
-const s = StyleSheet.create({
-  card: {
-    width: "100%",
-    maxWidth: 500,
-    alignSelf: "center",
-    backgroundColor: c.peachLight,
-    borderRadius: 36,
-    padding: 28,
-  },
-  title: {
-    fontFamily: f.regular,
-    fontSize: 34,
-    lineHeight: 39,
-    letterSpacing: -1.2,
-    color: c.ink,
-  },
-  problem: { marginTop: 22, gap: 10 },
-  problemLabel: {
-    fontFamily: f.medium,
-    fontSize: 10,
-    letterSpacing: 1.4,
-    color: c.muted,
-  },
-  problemRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  titleInput: {
-    flex: 1,
-    minWidth: 0,
-    backgroundColor: c.surface,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  problemTitle: {
-    flexShrink: 1,
-    fontFamily: f.medium,
-    fontSize: 21,
-    lineHeight: 27,
-    color: c.ink,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      width: "100%",
+      maxWidth: 500,
+      alignSelf: "center",
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      padding: 28,
+    },
+    title: {
+      fontFamily: f.regular,
+      fontSize: 34,
+      lineHeight: 39,
+      letterSpacing: -1.2,
+      color: c.ink,
+    },
+    problem: { marginTop: 22, gap: 10 },
+    problemLabel: {
+      fontFamily: f.medium,
+      fontSize: 10,
+      letterSpacing: 1.4,
+      color: c.muted,
+    },
+    problemRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    titleInput: {
+      flex: 1,
+      minWidth: 0,
+      backgroundColor: c.surface,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    problemTitle: {
+      flexShrink: 1,
+      fontFamily: f.medium,
+      fontSize: 21,
+      lineHeight: 27,
+      color: c.ink,
+    },
+  });

@@ -2,7 +2,8 @@ import { useEffect, useRef, type ComponentRef } from "react";
 import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import OptionInput from "./option-input";
 import DecisionButton from "./decision-button";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 export type DecisionOption = { id: number; value: string };
 type Props = {
@@ -27,6 +28,7 @@ export default function OptionsForm({
   submitLabel = "Choose one for me ↗",
   caption,
 }: Props) {
+  const [s] = useThemeStyles(createStyles);
   const inputs = useRef(new Map<number, ComponentRef<typeof TextInput>>());
   const pendingFocus = useRef<number | null>(null);
   useEffect(() => {
@@ -82,12 +84,13 @@ export default function OptionsForm({
     </View>
   );
 }
-const s = StyleSheet.create({
-  form: { gap: 10, marginTop: 24 },
-  caption: {
-    fontFamily: f.medium,
-    fontSize: 12,
-    color: c.muted,
-    marginBottom: 4,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    form: { gap: 10, marginTop: 24 },
+    caption: {
+      fontFamily: f.medium,
+      fontSize: 12,
+      color: c.muted,
+      marginBottom: 4,
+    },
+  });

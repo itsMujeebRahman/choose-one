@@ -1,5 +1,5 @@
 import Svg, { Circle, Path } from "react-native-svg";
-import { colors } from "../../theme/tokens";
+import { useTheme } from "../../theme/theme";
 
 export default function TabIcon({
   name,
@@ -8,6 +8,7 @@ export default function TabIcon({
   name: "home" | "profile" | "lists";
   focused: boolean;
 }) {
+  const { colors } = useTheme();
   return (
     <Svg
       width={24}

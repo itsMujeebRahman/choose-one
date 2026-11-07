@@ -12,6 +12,8 @@
   --color-coral: #d69683;
   --color-mint: #cddfdd;
   --color-border: #e5e2e3;
+  --color-subtle: #eae8ed;
+  --color-outline: #b6a99f;
   --color-error: #9c332b;
   --font-body: "Outfit_400Regular", sans-serif;
   --font-medium: "Outfit_500Medium", sans-serif;
@@ -26,4 +28,26 @@
   --space-lg: 24px;
   --space-xl: 32px;
   --space-xxl: 48px;
+}
+
+[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #111216;
+    --color-surface: #1a1d24;
+    --color-ink: #f4f5f8;
+    --color-muted: #9499a8;
+    --color-peach: #322723;
+    --color-peach-light: #1f2129;
+    --color-lavender: #25283c;
+    --color-yellow: #332d1c;
+    --color-sage: #222b1e;
+    --color-blue: #1c293d;
+    --color-coral: #352320;
+    --color-mint: #1b2e2a;
+    --color-border: #282b35;
+    --color-subtle: #232630;
+    --color-outline: #3a3e4d;
+    --color-error: #f4766a;
+  }
 }

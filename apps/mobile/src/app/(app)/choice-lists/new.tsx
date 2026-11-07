@@ -8,9 +8,11 @@ import OptionsForm, {
   type DecisionOption,
 } from "../../../components/decision-card/options-form";
 import { listRequest } from "../../../lib/choice-lists";
-import { colors as c, fonts as f } from "../../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../../theme/tokens";
+import { useThemeStyles } from "../../../theme/theme";
 
 export default function NewChoiceList() {
+  const [s, c] = useThemeStyles(createStyles);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState<DecisionOption[]>([
     { id: 0, value: "" },
@@ -113,16 +115,22 @@ export default function NewChoiceList() {
   );
 }
 
-const s = StyleSheet.create({
-  body: { fontFamily: f.regular, fontSize: 16, color: c.muted, lineHeight: 24 },
-  titleInput: {
-    minHeight: 58,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: c.surface,
-    color: c.ink,
-    fontFamily: f.regular,
-    fontSize: 15,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    body: {
+      fontFamily: f.regular,
+      fontSize: 16,
+      color: c.muted,
+      lineHeight: 24,
+    },
+    titleInput: {
+      minHeight: 58,
+      borderRadius: 18,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: c.surface,
+      color: c.ink,
+      fontFamily: f.regular,
+      fontSize: 15,
+    },
+  });

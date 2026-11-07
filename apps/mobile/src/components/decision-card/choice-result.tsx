@@ -9,15 +9,22 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import DecisionButton from "./decision-button";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
-export const answerColors = [
-  c.yellow,
-  c.lavender,
-  c.mint,
-  c.blue,
-  c.coral,
+const answerColorKeys = [
+  "yellow",
+  "lavender",
+  "mint",
+  "blue",
+  "coral",
 ] as const;
+
+export const answerColorCount = answerColorKeys.length;
+
+export function getAnswerColors(colors: ThemeColors) {
+  return answerColorKeys.map((key) => colors[key]);
+}
 
 type Props = { answer: string; colorIndex: number; onStartNew: () => void };
 export default function ChoiceResult({
@@ -25,6 +32,7 @@ export default function ChoiceResult({
   colorIndex,
   onStartNew,
 }: Props) {
+  const [s, c] = useThemeStyles(createStyles);
   const reveal = useSharedValue(0);
   useEffect(() => {
     reveal.value = withTiming(1, {
@@ -43,7 +51,7 @@ export default function ChoiceResult({
       style={[s.container, revealStyle]}
     >
       <View
-        style={[s.answer, { backgroundColor: answerColors[colorIndex] }]}
+        style={[s.answer, { backgroundColor: getAnswerColors(c)[colorIndex] }]}
         accessibilityLiveRegion="polite"
       >
         <Text style={s.eyebrow}>YOUR ONE LITTLE CHOICE</Text>
@@ -62,32 +70,33 @@ export default function ChoiceResult({
     </Animated.View>
   );
 }
-const s = StyleSheet.create({
-  container: { marginTop: 24, gap: 12 },
-  answer: {
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 8,
-  },
-  eyebrow: {
-    fontFamily: f.medium,
-    color: c.muted,
-    fontSize: 10,
-    letterSpacing: 1.5,
-  },
-  title: {
-    fontFamily: f.medium,
-    fontSize: 30,
-    lineHeight: 36,
-    letterSpacing: -0.8,
-    color: c.ink,
-    marginTop: 18,
-  },
-  body: {
-    fontFamily: f.regular,
-    fontSize: 14,
-    lineHeight: 21,
-    color: c.muted,
-    marginTop: 16,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    container: { marginTop: 24, gap: 12 },
+    answer: {
+      borderRadius: 36,
+      padding: 24,
+      marginBottom: 8,
+    },
+    eyebrow: {
+      fontFamily: f.medium,
+      color: c.muted,
+      fontSize: 10,
+      letterSpacing: 1.5,
+    },
+    title: {
+      fontFamily: f.medium,
+      fontSize: 30,
+      lineHeight: 36,
+      letterSpacing: -0.8,
+      color: c.ink,
+      marginTop: 18,
+    },
+    body: {
+      fontFamily: f.regular,
+      fontSize: 14,
+      lineHeight: 21,
+      color: c.muted,
+      marginTop: 16,
+    },
+  });

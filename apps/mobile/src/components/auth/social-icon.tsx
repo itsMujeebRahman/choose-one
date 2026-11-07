@@ -1,5 +1,5 @@
 import Svg, { Path } from "react-native-svg";
-import { colors } from "../../theme/tokens";
+import { useTheme } from "../../theme/theme";
 import { socialIcons } from "./social-icon-data";
 
 export default function SocialIcon({
@@ -7,6 +7,7 @@ export default function SocialIcon({
 }: {
   provider: "google" | "apple";
 }) {
+  const { colors } = useTheme();
   const icon = socialIcons[provider];
   return (
     <Svg

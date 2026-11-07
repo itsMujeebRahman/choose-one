@@ -5,11 +5,13 @@ import { Platform, Pressable, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tabs, usePathname } from "expo-router";
 import TabIcon from "../../../components/navigation/tab-icon";
-import { colors, fonts } from "../../../theme/tokens";
+import { fonts } from "../../../theme/tokens";
+import { useTheme } from "../../../theme/theme";
 
 export default function AppTabs() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const { colors, isDark } = useTheme();
   const homeTarget = useRef<ComponentRef<typeof View> | null>(null);
   const listsTarget = useRef<ComponentRef<typeof View> | null>(null);
   const profileTarget = useRef<ComponentRef<typeof View> | null>(null);
@@ -54,7 +56,11 @@ export default function AppTabs() {
             style={({ pressed }) => [
               style,
               { borderRadius: 999, overflow: "hidden" },
-              pressed && { backgroundColor: "rgba(255,255,255,0.75)" },
+              pressed && {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(255,255,255,0.75)",
+              },
             ]}
           >
             {children}

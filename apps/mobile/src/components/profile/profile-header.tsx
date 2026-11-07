@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 export default function ProfileHeader({
   name,
@@ -9,6 +10,7 @@ export default function ProfileHeader({
   name: string;
   email: string;
 }) {
+  const [s, c] = useThemeStyles(createStyles);
   return (
     <View style={s.header}>
       <View style={s.avatar}>
@@ -35,24 +37,25 @@ export default function ProfileHeader({
     </View>
   );
 }
-const s = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    backgroundColor: c.peachLight,
-    borderRadius: 28,
-    padding: 20,
-  },
-  avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: c.lavender,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  identity: { flex: 1, gap: 4 },
-  name: { fontFamily: f.medium, fontSize: 24, color: c.ink },
-  email: { fontFamily: f.regular, fontSize: 14, color: c.muted },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      backgroundColor: c.peachLight,
+      borderRadius: 28,
+      padding: 20,
+    },
+    avatar: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      backgroundColor: c.lavender,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    identity: { flex: 1, gap: 4 },
+    name: { fontFamily: f.medium, fontSize: 24, color: c.ink },
+    email: { fontFamily: f.regular, fontSize: 14, color: c.muted },
+  });

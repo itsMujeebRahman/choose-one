@@ -10,7 +10,8 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import { colors, fonts } from "../../theme/tokens";
+import { fonts, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 const examples = [
   "Restaurant confusion",
@@ -28,6 +29,7 @@ function CubeFace({
   text: string;
   progress: SharedValue<number>;
 }) {
+  const [styles] = useThemeStyles(createStyles);
   const animatedStyle = useAnimatedStyle(() => {
     const phase = (progress.value + slot) % 2;
     // Reposition only at the edge-on, hidden point. The visible face never resets.
@@ -49,6 +51,7 @@ function CubeFace({
 }
 
 export default function FlippingPlaceholder() {
+  const [styles] = useThemeStyles(createStyles);
   const [faces, setFaces] = useState<[string, string]>([
     examples[0],
     examples[1],
@@ -102,28 +105,29 @@ export default function FlippingPlaceholder() {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  cube: { height: faceHeight, overflow: "hidden" },
-  face: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: faceHeight,
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    lineHeight: faceHeight,
-    color: colors.muted,
-    backgroundColor: colors.surface,
-    backfaceVisibility: "hidden",
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      position: "absolute",
+      left: 16,
+      right: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    cube: { height: faceHeight, overflow: "hidden" },
+    face: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: faceHeight,
+      fontFamily: fonts.regular,
+      fontSize: 15,
+      lineHeight: faceHeight,
+      color: c.muted,
+      backgroundColor: c.surface,
+      backfaceVisibility: "hidden",
+    },
+  });

@@ -1,9 +1,12 @@
+import { useTheme } from "../../theme/theme";
+
 export default function TitleGlassBackground({
   height,
 }: {
   target: unknown;
   height: number;
 }) {
+  const { isDark } = useTheme();
   return (
     <div
       aria-hidden="true"
@@ -16,7 +19,7 @@ export default function TitleGlassBackground({
         height,
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
-        background: "rgba(255,255,255,0.15)",
+        background: isDark ? "rgba(17,18,22,0.65)" : "rgba(255,255,255,0.15)",
         maskImage:
           "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
         WebkitMaskImage:

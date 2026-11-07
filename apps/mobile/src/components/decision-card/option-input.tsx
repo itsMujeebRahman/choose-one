@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ComponentRef, Ref } from "react";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useTheme, useThemeStyles } from "../../theme/theme";
 
 type Props = {
   number: number;
@@ -20,6 +21,8 @@ export default function OptionInput({
   onNext,
   isLastAllowed,
 }: Props) {
+  const [s, c] = useThemeStyles(createStyles);
+  const { isDark } = useTheme();
   return (
     <View style={s.row}>
       <Text style={s.number}>{String(number).padStart(2, "0")}</Text>
@@ -28,6 +31,7 @@ export default function OptionInput({
         accessibilityLabel={`Option ${number}`}
         placeholder={`Option ${number}`}
         placeholderTextColor={c.muted}
+        keyboardAppearance={isDark ? "dark" : "light"}
         value={value}
         onChangeText={onChange}
         maxLength={120}
@@ -52,35 +56,36 @@ export default function OptionInput({
     </View>
   );
 }
-const s = StyleSheet.create({
-  row: {
-    minHeight: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: c.surface,
-    borderRadius: 18,
-    paddingLeft: 14,
-    paddingRight: 4,
-  },
-  number: {
-    fontFamily: f.medium,
-    color: c.sage,
-    fontSize: 12,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: 16,
-    fontFamily: f.regular,
-    fontSize: 15,
-    color: c.ink,
-  },
-  remove: {
-    width: 44,
-    minHeight: 48,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cross: { fontSize: 24, color: c.muted },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    row: {
+      minHeight: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: c.surface,
+      borderRadius: 18,
+      paddingLeft: 14,
+      paddingRight: 4,
+    },
+    number: {
+      fontFamily: f.medium,
+      color: c.sage,
+      fontSize: 12,
+      marginRight: 10,
+    },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      paddingVertical: 16,
+      fontFamily: f.regular,
+      fontSize: 15,
+      color: c.ink,
+    },
+    remove: {
+      width: 44,
+      minHeight: 48,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cross: { fontSize: 24, color: c.muted },
+  });

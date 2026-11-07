@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 type Section = "Profile" | "History" | "Settings";
 const paths: Record<Section, string> = {
@@ -15,6 +16,7 @@ export default function ProfileSection({
   title: Section;
   onPress: () => void;
 }) {
+  const [s, c] = useThemeStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -55,23 +57,24 @@ export default function ProfileSection({
     </Pressable>
   );
 }
-const s = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: c.surface,
-    borderRadius: 24,
-    padding: 16,
-    minHeight: 76,
-  },
-  icon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: { flex: 1, fontFamily: f.medium, fontSize: 18, color: c.ink },
-  arrow: { fontFamily: f.regular, fontSize: 23, color: c.muted },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      backgroundColor: c.surface,
+      borderRadius: 24,
+      padding: 16,
+      minHeight: 76,
+    },
+    icon: {
+      width: 44,
+      height: 44,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: { flex: 1, fontFamily: f.medium, fontSize: 18, color: c.ink },
+    arrow: { fontFamily: f.regular, fontSize: 23, color: c.muted },
+  });

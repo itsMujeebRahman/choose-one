@@ -40,23 +40,19 @@ export async function createList(
     return input.id;
   }
   const writes = [
-    db
-      .insert(choiceList)
-      .values({
-        id: input.id,
-        title: input.title,
-        userId: owner,
-        optionCount: input.options.length,
-      }),
-    db
-      .insert(choiceListOption)
-      .values(
-        input.options.map((label, index) => ({
-          listId: input.id,
-          label,
-          sortOrder: index + 1,
-        })),
-      ),
+    db.insert(choiceList).values({
+      id: input.id,
+      title: input.title,
+      userId: owner,
+      optionCount: input.options.length,
+    }),
+    db.insert(choiceListOption).values(
+      input.options.map((label, index) => ({
+        listId: input.id,
+        label,
+        sortOrder: index + 1,
+      })),
+    ),
   ] as const;
   if (preview)
     await db.batch([

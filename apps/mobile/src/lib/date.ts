@@ -13,10 +13,7 @@ function ago(value: number, unit: string) {
 export function timeAgo(value: DateInput) {
   const date = toDate(value);
   if (!date) return "";
-  const seconds = Math.max(
-    0,
-    Math.floor((Date.now() - date.getTime()) / 1000),
-  );
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
   if (seconds < 45) return "just now";
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) return ago(minutes, "minute");

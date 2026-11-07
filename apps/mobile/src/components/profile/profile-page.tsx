@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { router, type Href } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 export default function ProfilePage({
   title,
@@ -17,6 +18,7 @@ export default function ProfilePage({
   backTo?: Href;
   backLabel?: string;
 }) {
+  const [s, c] = useThemeStyles(createStyles);
   return (
     <SafeAreaView style={s.page}>
       <KeyboardAwareScrollView
@@ -55,29 +57,30 @@ export default function ProfilePage({
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: c.background },
-  content: {
-    padding: 24,
-    gap: 24,
-    width: "100%",
-    maxWidth: 560,
-    alignSelf: "center",
-  },
-  back: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: c.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heading: { flexDirection: "row", alignItems: "center", gap: 14 },
-  title: {
-    flex: 1,
-    fontFamily: f.regular,
-    fontSize: 38,
-    letterSpacing: -1.5,
-    color: c.ink,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    page: { flex: 1, backgroundColor: c.background },
+    content: {
+      padding: 24,
+      gap: 24,
+      width: "100%",
+      maxWidth: 560,
+      alignSelf: "center",
+    },
+    back: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heading: { flexDirection: "row", alignItems: "center", gap: 14 },
+    title: {
+      flex: 1,
+      fontFamily: f.regular,
+      fontSize: 38,
+      letterSpacing: -1.5,
+      color: c.ink,
+    },
+  });

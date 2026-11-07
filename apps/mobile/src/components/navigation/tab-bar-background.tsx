@@ -5,6 +5,7 @@ import {
   isGlassEffectAPIAvailable,
   isLiquidGlassAvailable,
 } from "expo-glass-effect";
+import { useTheme } from "../../theme/theme";
 
 const useLiquidGlass =
   Platform.OS === "ios" &&
@@ -17,22 +18,37 @@ export default function TabBarBackground({
   target: NonNullable<BlurViewProps["blurTarget"]>;
   borderRadius?: number;
 }) {
+  const { isDark } = useTheme();
   if (useLiquidGlass) {
     return (
       <GlassView
         pointerEvents="none"
         style={[styles.glass, { borderRadius }]}
         glassEffectStyle="regular"
-        colorScheme="light"
-        tintColor="rgba(255,255,255,0.15)"
+        colorScheme={isDark ? "dark" : "light"}
+        tintColor={isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.15)"}
       />
     );
   }
   return (
-    <View pointerEvents="none" style={[styles.frosted, { borderRadius }]}>
+    <View
+      pointerEvents="none"
+      style={[
+        styles.frosted,
+        {
+          borderRadius,
+          borderColor: isDark
+            ? "rgba(255,255,255,0.12)"
+            : "rgba(255,255,255,0.6)",
+          backgroundColor: isDark
+            ? "rgba(17,18,22,0.75)"
+            : "rgba(255,255,255,0.25)",
+        },
+      ]}
+    >
       <BlurView
         style={StyleSheet.absoluteFill}
-        tint="light"
+        tint={isDark ? "dark" : "light"}
         intensity={65}
         blurTarget={target}
         blurMethod="dimezisBlurViewSdk31Plus"

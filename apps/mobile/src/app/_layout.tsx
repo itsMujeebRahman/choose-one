@@ -7,11 +7,22 @@ import { Outfit_400Regular } from "@expo-google-fonts/outfit/400Regular";
 import { Outfit_500Medium } from "@expo-google-fonts/outfit/500Medium";
 import { Outfit_600SemiBold } from "@expo-google-fonts/outfit/600SemiBold";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { colors, fonts } from "../theme/tokens";
+import FightLoader from "../components/feedback/fight-loader";
+import { fonts } from "../theme/tokens";
+import { ThemeProvider, useTheme } from "../theme/theme";
 
 export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
+  );
+}
+
+function RootLayoutContent() {
+  const { colors, isDark } = useTheme();
   const [loaded, error] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
@@ -29,19 +40,22 @@ export default function RootLayout() {
           flex: 1,
           backgroundColor: colors.background,
           justifyContent: "center",
+          paddingHorizontal: 24,
         }}
       >
-        <ActivityIndicator color={colors.ink} />
+        <FightLoader />
       </View>
     );
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <SafeAreaProvider>
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? "light" : "dark"} />
         <Slot />
         <Toaster
           position="top-center"
-          theme="light"
+          theme={isDark ? "dark" : "light"}
           toastOptions={{
             style: {
               backgroundColor: colors.surface,

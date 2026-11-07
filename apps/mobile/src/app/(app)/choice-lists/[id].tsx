@@ -1,17 +1,20 @@
 import ChoiceLoader, {
-  preloadChoiceSticker,
+  preloadChoiceLoader,
 } from "../../../components/decision-card/choice-loader";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
-import { ActivityIndicator, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { randomUUID } from "expo-crypto";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
 import DecisionButton from "../../../components/decision-card/decision-button";
+import FightLoader from "../../../components/feedback/fight-loader";
 import { listRequest, type ListDetail } from "../../../lib/choice-lists";
 import { fullDate } from "../../../lib/date";
-import { colors as c, fonts as f } from "../../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../../theme/tokens";
+import { useThemeStyles } from "../../../theme/theme";
 export default function ChoiceListScreen() {
+  const [s] = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [list, setList] = useState<ListDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +22,7 @@ export default function ChoiceListScreen() {
   const request = useRef<string | null>(null);
   const picking = useRef(false);
   useEffect(() => {
-    void preloadChoiceSticker();
+    void preloadChoiceLoader();
   }, []);
   const load = useCallback(async () => {
     try {
@@ -79,7 +82,7 @@ export default function ChoiceListScreen() {
       title={list?.title ?? "Choice List"}
     >
       {loading ? (
-        <ActivityIndicator color={c.ink} />
+        <FightLoader />
       ) : !list ? (
         <DecisionButton label="Try again" onPress={load} />
       ) : (
@@ -138,10 +141,21 @@ export default function ChoiceListScreen() {
     </ProfilePage>
   );
 }
-const s = StyleSheet.create({
-  body: { fontFamily: f.regular, fontSize: 16, lineHeight: 24, color: c.muted },
-  date: { fontFamily: f.regular, fontSize: 12, color: c.muted },
-  title: { fontFamily: f.medium, fontSize: 24, color: c.ink },
-  answer: { padding: 24, borderRadius: 28, backgroundColor: c.yellow, gap: 12 },
-  row: { padding: 18, borderRadius: 18, backgroundColor: c.surface, gap: 6 },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    body: {
+      fontFamily: f.regular,
+      fontSize: 16,
+      lineHeight: 24,
+      color: c.muted,
+    },
+    date: { fontFamily: f.regular, fontSize: 12, color: c.muted },
+    title: { fontFamily: f.medium, fontSize: 24, color: c.ink },
+    answer: {
+      padding: 24,
+      borderRadius: 36,
+      backgroundColor: c.yellow,
+      gap: 12,
+    },
+    row: { padding: 18, borderRadius: 18, backgroundColor: c.surface, gap: 6 },
+  });

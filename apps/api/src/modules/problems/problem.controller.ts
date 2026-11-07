@@ -68,9 +68,7 @@ export async function listProblemHistory(c: ProblemContext) {
     const owner = await resolveOwner(c);
     if (!owner.userId)
       return c.json({ message: "Please sign in to view your history." }, 401);
-    return c.json(
-      await getProblemHistory(c.env.DATABASE_URL, owner.userId),
-    );
+    return c.json(await getProblemHistory(c.env.DATABASE_URL, owner.userId));
   } catch {
     return c.json(
       { message: "Couldn’t load your history. Please try again." },
@@ -89,11 +87,7 @@ export async function getProblemHistoryDetail(c: ProblemContext) {
       return c.json({ message: "Please sign in to view your history." }, 401);
     const id = c.req.param("id");
     if (!id) return c.json({ message: "Choice not found." }, 404);
-    const choice = await getProblemDetail(
-      c.env.DATABASE_URL,
-      owner.userId,
-      id,
-    );
+    const choice = await getProblemDetail(c.env.DATABASE_URL, owner.userId, id);
     if (!choice) return c.json({ message: "Choice not found." }, 404);
     return c.json(choice);
   } catch {

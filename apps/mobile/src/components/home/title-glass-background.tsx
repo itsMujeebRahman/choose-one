@@ -3,6 +3,7 @@ import { StyleSheet, type ViewProps } from "react-native";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView, type BlurViewProps } from "expo-blur";
+import { useTheme } from "../../theme/theme";
 
 // The package's legacy NativeMethods class typing predates RN 0.88's element refs.
 const GradientMask = MaskedView as unknown as ComponentType<
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function TitleGlassBackground({ target, height }: Props) {
+  const { isDark } = useTheme();
   return (
     <GradientMask
       pointerEvents="none"
@@ -31,7 +33,7 @@ export default function TitleGlassBackground({ target, height }: Props) {
         style={StyleSheet.absoluteFill}
         blurTarget={target}
         blurMethod="dimezisBlurViewSdk31Plus"
-        tint="light"
+        tint={isDark ? "dark" : "light"}
         intensity={65}
       />
     </GradientMask>

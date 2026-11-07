@@ -1,7 +1,8 @@
 import FlippingPlaceholder from "./flipping-placeholder";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useTheme, useThemeStyles } from "../../theme/theme";
 import DecisionButton from "./decision-button";
 
 type Props = {
@@ -14,6 +15,8 @@ export default function ProblemTitleInput({
   onChange,
   onContinue,
 }: Props) {
+  const [s, c] = useThemeStyles(createStyles);
+  const { isDark } = useTheme();
   const [focused, setFocused] = useState(false);
   return (
     <View style={s.container}>
@@ -22,6 +25,7 @@ export default function ProblemTitleInput({
         <TextInput
           accessibilityLabel="Problem name"
           placeholderTextColor={c.muted}
+          keyboardAppearance={isDark ? "dark" : "light"}
           value={value}
           onChangeText={onChange}
           onFocus={() => setFocused(true)}
@@ -38,17 +42,18 @@ export default function ProblemTitleInput({
     </View>
   );
 }
-const s = StyleSheet.create({
-  container: { gap: 16, marginTop: 24 },
-  label: { fontFamily: f.medium, fontSize: 13, color: c.muted },
-  input: {
-    minHeight: 58,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: c.surface,
-    color: c.ink,
-    fontFamily: f.regular,
-    fontSize: 15,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    container: { gap: 16, marginTop: 24 },
+    label: { fontFamily: f.medium, fontSize: 13, color: c.muted },
+    input: {
+      minHeight: 58,
+      borderRadius: 18,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: c.surface,
+      color: c.ink,
+      fontFamily: f.regular,
+      fontSize: 15,
+    },
+  });

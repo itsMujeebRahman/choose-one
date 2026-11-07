@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { colors } from "../../theme/tokens";
+import { type ThemeColors } from "../../theme/tokens";
+import { useThemeStyles } from "../../theme/theme";
 
 export default function EditProblemButton({
   onPress,
@@ -9,6 +10,7 @@ export default function EditProblemButton({
   onPress: () => void;
   editing?: boolean;
 }) {
+  const [styles, c] = useThemeStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -21,7 +23,7 @@ export default function EditProblemButton({
         height={18}
         viewBox="0 0 24 24"
         fill="none"
-        stroke={colors.ink}
+        stroke={c.ink}
         strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -38,14 +40,15 @@ export default function EditProblemButton({
     </Pressable>
   );
 }
-const styles = StyleSheet.create({
-  button: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    button: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+  });

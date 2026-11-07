@@ -3,7 +3,6 @@ import { toast } from "sonner-native";
 import { useState } from "react";
 import { Redirect } from "expo-router";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,9 +14,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { authClient } from "../../lib/auth-client";
-import { colors as c, fonts as f } from "../../theme/tokens";
+import FightLoader from "../../components/feedback/fight-loader";
+import { fonts as f, type ThemeColors } from "../../theme/tokens";
+import { useTheme, useThemeStyles } from "../../theme/theme";
 
 export default function CompleteProfile() {
+  const [s, c] = useThemeStyles(createStyles);
+  const { isDark } = useTheme();
   const { data: session, refetch } = useAppSession();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -75,6 +78,7 @@ export default function CompleteProfile() {
               accessibilityLabel="Username"
               placeholder="Your username"
               placeholderTextColor={c.muted}
+              keyboardAppearance={isDark ? "dark" : "light"}
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={100}
@@ -92,7 +96,7 @@ export default function CompleteProfile() {
               style={s.button}
             >
               {busy ? (
-                <ActivityIndicator color={c.surface} />
+                <FightLoader decorative style={s.buttonLoader} />
               ) : (
                 <Text style={s.buttonText}>Make myself at home ↗</Text>
               )}
@@ -103,55 +107,62 @@ export default function CompleteProfile() {
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: c.background },
-  content: { flexGrow: 1, justifyContent: "center", padding: 20 },
-  card: {
-    padding: 28,
-    backgroundColor: c.peachLight,
-    borderRadius: 36,
-    width: "100%",
-    maxWidth: 460,
-    alignSelf: "center",
-  },
-  brand: { fontFamily: f.medium, fontSize: 23, color: c.ink, marginBottom: 40 },
-  title: {
-    fontFamily: f.regular,
-    fontSize: 38,
-    lineHeight: 42,
-    color: c.ink,
-    letterSpacing: -1.5,
-  },
-  body: {
-    fontFamily: f.regular,
-    fontSize: 15,
-    lineHeight: 22,
-    color: c.muted,
-    marginTop: 15,
-  },
-  label: {
-    fontFamily: f.medium,
-    fontSize: 14,
-    color: c.ink,
-    marginTop: 30,
-    marginBottom: 8,
-  },
-  input: {
-    fontFamily: f.regular,
-    fontSize: 16,
-    color: c.ink,
-    backgroundColor: c.surface,
-    borderRadius: 16,
-    minHeight: 56,
-    paddingHorizontal: 16,
-  },
-  button: {
-    marginTop: 24,
-    minHeight: 56,
-    backgroundColor: c.ink,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: { color: c.surface, fontFamily: f.medium, fontSize: 15 },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    page: { flex: 1, backgroundColor: c.background },
+    content: { flexGrow: 1, justifyContent: "center", padding: 20 },
+    card: {
+      padding: 28,
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      width: "100%",
+      maxWidth: 460,
+      alignSelf: "center",
+    },
+    brand: {
+      fontFamily: f.medium,
+      fontSize: 23,
+      color: c.ink,
+      marginBottom: 40,
+    },
+    title: {
+      fontFamily: f.regular,
+      fontSize: 38,
+      lineHeight: 42,
+      color: c.ink,
+      letterSpacing: -1.5,
+    },
+    body: {
+      fontFamily: f.regular,
+      fontSize: 15,
+      lineHeight: 22,
+      color: c.muted,
+      marginTop: 15,
+    },
+    label: {
+      fontFamily: f.medium,
+      fontSize: 14,
+      color: c.ink,
+      marginTop: 30,
+      marginBottom: 8,
+    },
+    input: {
+      fontFamily: f.regular,
+      fontSize: 16,
+      color: c.ink,
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      minHeight: 56,
+      paddingHorizontal: 16,
+    },
+    button: {
+      marginTop: 24,
+      minHeight: 56,
+      backgroundColor: c.ink,
+      borderRadius: 999,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    buttonLoader: { width: 76, maxWidth: 76 },
+    buttonText: { color: c.surface, fontFamily: f.medium, fontSize: 15 },
+  });

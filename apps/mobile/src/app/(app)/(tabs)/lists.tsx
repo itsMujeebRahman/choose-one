@@ -1,14 +1,7 @@
 import { useCallback, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path } from "react-native-svg";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -16,11 +9,14 @@ import {
 import { toast } from "sonner-native";
 import ChoiceCard from "../../../components/choice-card";
 import DecisionButton from "../../../components/decision-card/decision-button";
+import FightLoader from "../../../components/feedback/fight-loader";
 import { timeAgo } from "../../../lib/date";
 import { listRequest, type ChoiceList } from "../../../lib/choice-lists";
-import { colors as c, fonts as f } from "../../../theme/tokens";
+import { fonts as f, type ThemeColors } from "../../../theme/tokens";
+import { useThemeStyles } from "../../../theme/theme";
 export default function ListsScreen() {
   const insets = useSafeAreaInsets();
+  const [s, c] = useThemeStyles(createStyles);
   const [lists, setLists] = useState<ChoiceList[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -68,16 +64,42 @@ export default function ListsScreen() {
       <ScrollView
         contentContainerStyle={[
           s.content,
-          { paddingBottom: Math.max(insets.bottom, 16) + 190 },
+          { paddingBottom: Math.max(insets.bottom, 16) + 112 },
         ]}
       >
-        <Text style={s.title}>Choice Lists</Text>
+        <View style={s.headerRow}>
+          <Text style={s.title}>Choice Lists</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Create a new choice list"
+            onPress={() => router.push("/choice-lists/new")}
+            style={({ pressed }) => [
+              s.createButton,
+              pressed && { opacity: 0.75 },
+            ]}
+          >
+            <Svg
+              width={15}
+              height={15}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={c.surface}
+              strokeWidth={2.4}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              accessible={false}
+            >
+              <Path d="M12 5v14M5 12h14" />
+            </Svg>
+            <Text style={s.createText}>Create</Text>
+          </Pressable>
+        </View>
         <Text style={s.body}>
           A fresh pick, every time. Keep your favourites together and try them
           all.
         </Text>
         {loading ? (
-          <ActivityIndicator color={c.ink} />
+          <FightLoader style={s.loader} />
         ) : failed ? (
           <DecisionButton label="Try again" secondary onPress={load} />
         ) : (
@@ -100,66 +122,52 @@ export default function ListsScreen() {
           </>
         )}
       </ScrollView>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Create a new choice list"
-        onPress={() => router.push("/choice-lists/new")}
-        style={({ pressed }) => [
-          s.fab,
-          {
-            right: 24,
-            bottom: Math.max(insets.bottom, 16) + 100,
-          },
-          pressed && { opacity: 0.75 },
-        ]}
-      >
-        <Svg
-          width={28}
-          height={28}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={c.surface}
-          strokeWidth={2}
-          strokeLinecap="round"
-          accessible={false}
-        >
-          <Path d="M12 5v14M5 12h14" />
-        </Svg>
-      </Pressable>
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: c.background },
-  content: {
-    padding: 24,
-    gap: 20,
-    maxWidth: 560,
-    width: "100%",
-    alignSelf: "center",
-  },
-  title: {
-    fontFamily: f.regular,
-    fontSize: 38,
-    color: c.ink,
-    letterSpacing: -1.5,
-  },
-  name: { fontFamily: f.medium, fontSize: 22, color: c.ink },
-  body: { fontFamily: f.regular, fontSize: 16, lineHeight: 24, color: c.muted },
-  cards: { gap: 12 },
-  fab: {
-    position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: c.ink,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    page: { flex: 1, backgroundColor: c.background },
+    content: {
+      padding: 24,
+      gap: 20,
+      maxWidth: 560,
+      width: "100%",
+      alignSelf: "center",
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    title: {
+      fontFamily: f.regular,
+      fontSize: 38,
+      color: c.ink,
+      letterSpacing: -1.5,
+    },
+    createButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: c.ink,
+      borderRadius: 999,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    },
+    createText: {
+      fontFamily: f.medium,
+      fontSize: 14,
+      color: c.surface,
+    },
+    name: { fontFamily: f.medium, fontSize: 22, color: c.ink },
+    body: {
+      fontFamily: f.regular,
+      fontSize: 16,
+      lineHeight: 24,
+      color: c.muted,
+    },
+    cards: { gap: 12 },
+    loader: { marginVertical: 12 },
+  });

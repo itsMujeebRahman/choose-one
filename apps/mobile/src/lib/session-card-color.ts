@@ -1,20 +1,24 @@
 import { readColorPreference, writeColorPreference } from "./color-storage";
-import { colors } from "../theme/tokens";
+import { type ThemeColors } from "../theme/tokens";
 
-const palette = [
-  colors.peachLight,
-  colors.lavender,
-  colors.mint,
-  colors.yellow,
-  colors.blue,
-  colors.coral,
+const paletteKeys = [
+  "peachLight",
+  "lavender",
+  "mint",
+  "yellow",
+  "blue",
+  "coral",
 ] as const;
 let activeSession: string | null = null;
 let colorIndex = -1;
 let restored = false;
 
 // Keep the card colour stable across screen mounts and session refreshes.
-export function sessionCardColor(sessionId: string, createdAt: Date | string) {
+export function sessionCardColor(
+  sessionId: string,
+  createdAt: Date | string,
+  colors: ThemeColors,
+) {
   if (!restored) {
     restored = true;
     try {
@@ -26,7 +30,7 @@ export function sessionCardColor(sessionId: string, createdAt: Date | string) {
         typeof saved.session === "string" &&
         Number.isInteger(saved.index) &&
         saved.index >= 0 &&
-        saved.index < palette.length
+        saved.index < paletteKeys.length
       ) {
         activeSession = saved.session;
         colorIndex = saved.index;
@@ -37,13 +41,13 @@ export function sessionCardColor(sessionId: string, createdAt: Date | string) {
   }
   const key = `${sessionId}:${new Date(createdAt).getTime()}`;
   if (key !== activeSession) {
-    const step = 1 + Math.floor(Math.random() * (palette.length - 1));
-    colorIndex = (colorIndex + step) % palette.length;
+    const step = 1 + Math.floor(Math.random() * (paletteKeys.length - 1));
+    colorIndex = (colorIndex + step) % paletteKeys.length;
     activeSession = key;
     writeColorPreference(
       "chooseone.main-card-color",
       JSON.stringify({ session: key, index: colorIndex }),
     );
   }
-  return palette[colorIndex];
+  return colors[paletteKeys[colorIndex]];
 }

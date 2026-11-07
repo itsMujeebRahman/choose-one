@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors as c, fonts as f } from "../theme/tokens";
+import { fonts as f, type ThemeColors } from "../theme/tokens";
+import { useThemeStyles } from "../theme/theme";
 
 export type ChoiceCardProps = {
   title: string;
@@ -18,10 +19,11 @@ export default function ChoiceCard({
   date,
   resultLabel = "LATEST",
   result,
-  resultBackground = c.surface,
+  resultBackground,
   emptyLabel,
   onPress,
 }: ChoiceCardProps) {
+  const [s, c] = useThemeStyles(createStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -29,20 +31,22 @@ export default function ChoiceCard({
       onPress={onPress}
       style={({ pressed }) => [s.card, pressed && { opacity: 0.65 }]}
     >
-      <View style={s.heading}>
-        <Text style={s.title} numberOfLines={2}>
-          {title}
-        </Text>
+      <View style={s.topRow}>
+        <Text style={s.meta}>{meta}</Text>
         <Text style={s.arrow} accessible={false}>
           ↗
         </Text>
       </View>
-      <View style={s.metaRow}>
-        <Text style={s.meta}>{meta}</Text>
-        <Text style={s.meta}>{date}</Text>
+      <View style={s.headingRow}>
+        <Text style={s.title} numberOfLines={2}>
+          {title}
+        </Text>
+        <Text style={s.time}>{date}</Text>
       </View>
       {result ? (
-        <View style={[s.result, { backgroundColor: resultBackground }]}>
+        <View
+          style={[s.result, { backgroundColor: resultBackground ?? c.surface }]}
+        >
           {!!resultLabel && <Text style={s.resultLabel}>{resultLabel}</Text>}
           <Text style={s.resultValue} numberOfLines={1}>
             {result}
@@ -54,49 +58,61 @@ export default function ChoiceCard({
     </Pressable>
   );
 }
-const s = StyleSheet.create({
-  card: {
-    backgroundColor: c.peachLight,
-    borderRadius: 22,
-    padding: 18,
-    gap: 8,
-  },
-  heading: { flexDirection: "row", alignItems: "center", gap: 8 },
-  title: {
-    flex: 1,
-    fontFamily: f.medium,
-    fontSize: 19,
-    lineHeight: 24,
-    color: c.ink,
-  },
-  arrow: { fontFamily: f.regular, fontSize: 19, color: c.muted },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  meta: { fontFamily: f.regular, fontSize: 13, color: c.muted },
-  result: {
-    marginTop: 2,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  resultLabel: {
-    fontFamily: f.medium,
-    color: c.muted,
-    fontSize: 9,
-    letterSpacing: 1.1,
-  },
-  resultValue: {
-    flex: 1,
-    fontFamily: f.medium,
-    fontSize: 15,
-    color: c.ink,
-  },
-  empty: { fontFamily: f.regular, color: c.muted, fontSize: 13 },
-});
+const createStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      padding: 22,
+      gap: 10,
+    },
+    topRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    meta: { fontFamily: f.medium, fontSize: 13, color: c.muted },
+    arrow: { fontFamily: f.regular, fontSize: 20, color: c.muted },
+    headingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    title: {
+      flex: 1,
+      fontFamily: f.medium,
+      fontSize: 20,
+      lineHeight: 26,
+      color: c.ink,
+      letterSpacing: -0.4,
+    },
+    time: {
+      fontFamily: f.regular,
+      fontSize: 13,
+      color: c.muted,
+      flexShrink: 0,
+    },
+    result: {
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    resultLabel: {
+      fontFamily: f.medium,
+      color: c.muted,
+      fontSize: 9,
+      letterSpacing: 1.1,
+    },
+    resultValue: {
+      flex: 1,
+      fontFamily: f.medium,
+      fontSize: 15,
+      color: c.ink,
+    },
+    empty: { fontFamily: f.regular, color: c.muted, fontSize: 13 },
+  });
