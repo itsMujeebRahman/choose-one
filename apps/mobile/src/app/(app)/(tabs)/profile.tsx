@@ -52,8 +52,8 @@ export default function ProfileScreen() {
             </View>
             <Text style={s.guestTitle}>{session.user.name}</Text>
             <Text style={s.guestSubtitle}>
-              You’re browsing as a guest. Sign in to keep your decision
-              history, build Choice Lists, and sync your profile across devices.
+              You’re browsing as a guest. Sign in to keep your decision history,
+              build Choice Lists, and sync your profile across devices.
             </Text>
             <Pressable
               accessibilityRole="button"

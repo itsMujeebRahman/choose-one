@@ -2,20 +2,31 @@ import { StyleSheet, Text, View } from "react-native";
 import { fonts, spacing, type ThemeColors } from "../../theme/tokens";
 import { useThemeStyles } from "../../theme/theme";
 
-type AppTitleProps = { userName: string; appName?: string };
+type AppTitleProps = {
+  userName: string;
+  appName?: string;
+  isGuest?: boolean;
+};
 
 export default function AppTitle({
   userName,
   appName = "choose one",
+  isGuest = false,
 }: AppTitleProps) {
   const [s] = useThemeStyles(createStyles);
+  const displayName = isGuest
+    ? userName.trim().toLowerCase() === "guest"
+      ? "Guest"
+      : `${userName} - Guest`
+    : userName;
+
   return (
     <View style={s.container}>
       <Text accessibilityRole="header" style={s.appName}>
         {appName}
         <Text style={s.dot}>.</Text>
       </Text>
-      <Text style={s.userName}>{userName}</Text>
+      <Text style={s.userName}>{displayName}</Text>
     </View>
   );
 }

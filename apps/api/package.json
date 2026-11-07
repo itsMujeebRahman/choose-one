@@ -12,7 +12,9 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "neon:deploy": "neon deploy",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "db:wipe": "node --env-file=.env.local scripts/wipe-db.mjs",
+    "db:reset": "node --env-file=.env.local scripts/wipe-db.mjs --drop"
   },
   "dependencies": {
     "@better-auth/expo": "^1.7.18",

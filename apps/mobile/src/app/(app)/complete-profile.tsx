@@ -3,13 +3,7 @@ import { setGuestName } from "../../lib/guest-storage";
 import { toast } from "sonner-native";
 import { useState } from "react";
 import { Redirect, router } from "expo-router";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KeyboardAwareScrollView from "../../components/home/keyboard-aware-scroll-view";
 import { authClient } from "../../lib/auth-client";

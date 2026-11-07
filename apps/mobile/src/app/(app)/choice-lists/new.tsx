@@ -112,7 +112,8 @@ export default function NewChoiceList() {
         <View style={s.header}>
           <Text style={s.heading}>Give your list a name</Text>
           <Text style={s.caption}>
-            Add 3–20 options. Each pick removes one, so every option gets its turn.
+            Add 3–20 options. Each pick removes one, so every option gets its
+            turn.
           </Text>
         </View>
         <View>
@@ -152,7 +153,9 @@ export default function NewChoiceList() {
             )
           }
           onRemove={(id) =>
-            setOptions((current) => current.filter((option) => option.id !== id))
+            setOptions((current) =>
+              current.filter((option) => option.id !== id),
+            )
           }
           onAdd={() =>
             setOptions((current) =>

@@ -14,23 +14,28 @@ const mascots: Mascot[] = [
   },
   {
     source: require("../../../assets/doodleVideo/mira-transparent.webp"),
-    label: "A doodle therapist walking in and asking: What are you choosing between?",
+    label:
+      "A doodle therapist walking in and asking: What are you choosing between?",
   },
   {
     source: require("../../../assets/doodleVideo/nana-transparent.webp"),
-    label: "A doodle grandmother shuffling in and asking: What options are on your mind, dear?",
+    label:
+      "A doodle grandmother shuffling in and asking: What options are on your mind, dear?",
   },
   {
     source: require("../../../assets/doodleVideo/pip-transparent.webp"),
-    label: "A doodle driver parking a little car and asking: Can't decide which way to go?",
+    label:
+      "A doodle driver parking a little car and asking: Can't decide which way to go?",
   },
   {
     source: require("../../../assets/doodleVideo/sprout-transparent.webp"),
-    label: "A doodle jogger slowing down and asking: Which choice keeps you running in circles?",
+    label:
+      "A doodle jogger slowing down and asking: Which choice keeps you running in circles?",
   },
   {
     source: require("../../../assets/doodleVideo/fern-transparent.webp"),
-    label: "A doodle gardener watering a plant and asking: Which decision needs a little care today?",
+    label:
+      "A doodle gardener watering a plant and asking: Which decision needs a little care today?",
   },
 ];
 

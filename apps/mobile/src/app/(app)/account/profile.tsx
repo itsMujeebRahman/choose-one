@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Redirect } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { toast } from "sonner-native";
@@ -32,6 +33,7 @@ export default function AccountProfileScreen() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   if (!session) return null;
+  if (session.user.isAnonymous) return <Redirect href="/profile" />;
 
   const handlePickImage = async () => {
     if (isUploadingImage) return;

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Redirect, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import DecisionButton from "../../../../components/decision-card/decision-button";
 import {
@@ -12,9 +12,11 @@ import { formatHistoryDate, formatHistoryDateTime } from "../../../../lib/date";
 import { useHistoryDetailQuery } from "../../../../services/history";
 import { fonts as f, type ThemeColors } from "../../../../theme/tokens";
 import { useThemeStyles } from "../../../../theme/theme";
+import { useAppSession } from "../../../../lib/session";
 
 export default function HistoryDetailScreen() {
   const [s, c] = useThemeStyles(createStyles);
+  const { data: session } = useAppSession();
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     data: choice = null,
@@ -28,6 +30,10 @@ export default function HistoryDetailScreen() {
       void refetch();
     }, [refetch]),
   );
+
+  if (session?.user?.isAnonymous) {
+    return <Redirect href="/profile" />;
+  }
 
   const chosen = choice?.options.find((option) => option.isSelected);
   const answerColor = chosen

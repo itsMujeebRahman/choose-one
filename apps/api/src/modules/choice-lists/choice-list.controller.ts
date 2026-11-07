@@ -117,7 +117,9 @@ choiceListController.use("*", async (c, next) => {
   c.set("preview", !!preview);
   c.set(
     "isAnonymous",
-    Boolean((session?.user as { isAnonymous?: boolean } | undefined)?.isAnonymous),
+    Boolean(
+      (session?.user as { isAnonymous?: boolean } | undefined)?.isAnonymous,
+    ),
   );
   try {
     await next();

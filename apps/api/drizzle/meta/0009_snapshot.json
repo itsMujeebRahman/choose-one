@@ -111,12 +111,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -205,12 +201,8 @@
           "name": "choice_list_user_id_user_id_fk",
           "tableFrom": "choice_list",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -291,12 +283,8 @@
           "name": "choice_list_option_list_id_choice_list_id_fk",
           "tableFrom": "choice_list_option",
           "tableTo": "choice_list",
-          "columnsFrom": [
-            "list_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["list_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -306,26 +294,17 @@
         "choice_list_option_sort_unique": {
           "name": "choice_list_option_sort_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "list_id",
-            "sort_order"
-          ]
+          "columns": ["list_id", "sort_order"]
         },
         "choice_list_option_pick_unique": {
           "name": "choice_list_option_pick_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "list_id",
-            "selected_order"
-          ]
+          "columns": ["list_id", "selected_order"]
         },
         "choice_list_option_request_unique": {
           "name": "choice_list_option_request_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "list_id",
-            "pick_request_id"
-          ]
+          "columns": ["list_id", "pick_request_id"]
         }
       },
       "policies": {},
@@ -437,12 +416,8 @@
           "name": "problem_user_id_user_id_fk",
           "tableFrom": "problem",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -452,10 +427,7 @@
         "problem_id_user_id_unique": {
           "name": "problem_id_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "id",
-            "user_id"
-          ]
+          "columns": ["id", "user_id"]
         }
       },
       "policies": {},
@@ -589,14 +561,8 @@
           "name": "problem_option_owner_fk",
           "tableFrom": "problem_option",
           "tableTo": "problem",
-          "columnsFrom": [
-            "problem_id",
-            "user_id"
-          ],
-          "columnsTo": [
-            "id",
-            "user_id"
-          ],
+          "columnsFrom": ["problem_id", "user_id"],
+          "columnsTo": ["id", "user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -606,10 +572,7 @@
         "problem_option_order_unique": {
           "name": "problem_option_order_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "problem_id",
-            "sort_order"
-          ]
+          "columns": ["problem_id", "sort_order"]
         }
       },
       "policies": {},
@@ -710,12 +673,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -725,9 +684,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -805,9 +762,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},

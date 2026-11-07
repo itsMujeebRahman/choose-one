@@ -6,12 +6,14 @@ import TitleGlassBackground from "./title-glass-background";
 
 type Props = {
   userName: string;
+  isGuest?: boolean;
   target: NonNullable<BlurViewProps["blurTarget"]>;
   height: number;
   onHeightChange: (height: number) => void;
 };
 export default function HomeHeader({
   userName,
+  isGuest,
   target,
   height,
   onHeightChange,
@@ -29,7 +31,7 @@ export default function HomeHeader({
           paddingRight: insets.right + 20,
         }}
       >
-        <AppTitle userName={userName} />
+        <AppTitle userName={userName} isGuest={isGuest} />
       </View>
     </View>
   );

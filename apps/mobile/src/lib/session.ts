@@ -1,4 +1,5 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { AppState, Platform } from "react-native";
 import { authClient } from "./auth-client";
 import { previewSession } from "./preview-session";
 import {
@@ -29,6 +30,36 @@ export function useAppSession() {
     getGuestName,
     () => null,
   );
+
+  useEffect(() => {
+    if (result.data?.user?.isAnonymous && !guestName) {
+      void endSession();
+    }
+  }, [result.data?.user?.isAnonymous, guestName]);
+
+  const { refetch } = result;
+
+  useEffect(() => {
+    const handleCheck = () => {
+      void refetch();
+    };
+
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined") {
+        window.addEventListener("focus", handleCheck);
+        window.addEventListener("storage", handleCheck);
+        return () => {
+          window.removeEventListener("focus", handleCheck);
+          window.removeEventListener("storage", handleCheck);
+        };
+      }
+    } else {
+      const sub = AppState.addEventListener("change", (state) => {
+        if (state === "active") handleCheck();
+      });
+      return () => sub.remove();
+    }
+  }, [refetch]);
 
   const enhancedData = useMemo(() => {
     if (!result.data) return result.data;

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { router, useFocusEffect } from "expo-router";
+import { Redirect, router, useFocusEffect } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import ChoiceCard from "../../../../components/choice-card";
 import {
@@ -10,12 +10,14 @@ import DecisionButton from "../../../../components/decision-card/decision-button
 import FightLoader from "../../../../components/feedback/fight-loader";
 import ProfilePage from "../../../../components/profile/profile-page";
 import { timeAgo } from "../../../../lib/date";
+import { useAppSession } from "../../../../lib/session";
 import { useHistoryQuery } from "../../../../services/history";
 import { fonts as f, type ThemeColors } from "../../../../theme/tokens";
 import { useThemeStyles } from "../../../../theme/theme";
 
 export default function HistoryScreen() {
   const [s, c] = useThemeStyles(createStyles);
+  const { data: session } = useAppSession();
   const answerColors = getAnswerColors(c);
   const {
     data: items = [],
@@ -29,6 +31,10 @@ export default function HistoryScreen() {
       void refetch();
     }, [refetch]),
   );
+
+  if (session?.user?.isAnonymous) {
+    return <Redirect href="/profile" />;
+  }
 
   return (
     <ProfilePage title="History">

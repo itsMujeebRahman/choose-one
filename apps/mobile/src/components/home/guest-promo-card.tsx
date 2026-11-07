@@ -6,7 +6,8 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 import { useThemeStyles } from "../../theme/theme";
 
-const illustration = require("../../../assets/doodleVideo/fern-transparent.webp");
+const scientistsIllustration = require("../../../assets/doodleVideo/potato-scientists-transparent.webp");
+const scientistsPlaceholder = require("../../../assets/doodleVideo/potato-scientists-placeholder.png");
 
 export default function GuestPromoCard({
   onDismiss,
@@ -48,13 +49,15 @@ export default function GuestPromoCard({
       </View>
       <View style={s.illustrationRow}>
         <Image
-          source={illustration}
+          source={scientistsIllustration}
+          placeholder={scientistsPlaceholder}
+          placeholderContentFit="contain"
           contentFit="contain"
           autoplay
           cachePolicy="memory-disk"
-          recyclingKey="guest-promo-illustration"
+          recyclingKey="guest-promo-potato-scientists"
           accessibilityRole="image"
-          accessibilityLabel="A doodle gardener caring for a plant"
+          accessibilityLabel="Three doodle potato scientists discussing options in a lab"
           style={s.illustration}
         />
       </View>
@@ -150,4 +153,3 @@ const createStyles = (c: ThemeColors) =>
       color: c.surface,
     },
   });
-

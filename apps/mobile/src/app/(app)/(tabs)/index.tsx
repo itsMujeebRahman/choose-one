@@ -85,6 +85,7 @@ export default function HomeScreen() {
       </BlurTargetView>
       <HomeHeader
         userName={session.user.name}
+        isGuest={isGuest}
         target={target}
         height={headerHeight}
         onHeightChange={setHeaderHeight}

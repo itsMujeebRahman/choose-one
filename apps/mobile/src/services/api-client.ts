@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import { authClient } from "../lib/auth-client";
-import { isAuthPreview } from "../lib/session";
+import { endSession, isAuthPreview } from "../lib/session";
 
 export type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
@@ -43,6 +43,9 @@ export async function apiClient<T>(
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      void endSession();
+    }
     const message =
       (data &&
         typeof data === "object" &&

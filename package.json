@@ -20,6 +20,8 @@
     "lint": "eslint apps --ignore-pattern \"**/dist/**\"",
     "start:api": "npm run start --workspace @choose-one/api --",
     "neon:deploy": "npm run neon:deploy --workspace @choose-one/api",
+    "db:wipe": "npm run db:wipe --workspace @choose-one/api",
+    "db:reset": "npm run db:reset --workspace @choose-one/api",
     "dev": "concurrently --kill-others --names api,mobile \"npm run dev:api\" \"npm run dev:mobile\""
   },
   "devDependencies": {

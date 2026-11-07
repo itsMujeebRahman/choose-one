@@ -78,9 +78,7 @@ export default function ChoiceListScreen() {
   const remaining = list?.options.filter((o) => o.selectedOrder === null) ?? [];
   const latest = selected[selected.length - 1];
   const latestColor = latest
-    ? getAnswerColors(c)[
-        ((latest.selectedOrder ?? 1) - 1) % answerColorCount
-      ]
+    ? getAnswerColors(c)[((latest.selectedOrder ?? 1) - 1) % answerColorCount]
     : undefined;
   return (
     <ProfilePage

@@ -59,10 +59,7 @@ export default function FlippingPlaceholder({
 }: FlippingPlaceholderProps = {}) {
   const [styles] = useThemeStyles(createStyles);
   const items = placeholders.length >= 2 ? placeholders : examples;
-  const [faces, setFaces] = useState<[string, string]>([
-    items[0],
-    items[1],
-  ]);
+  const [faces, setFaces] = useState<[string, string]>([items[0], items[1]]);
   const progress = useSharedValue(0);
   useEffect(() => {
     let mounted = true;

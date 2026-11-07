@@ -5,14 +5,33 @@ const GUEST_NAME_KEY = "chooseone.guest_name";
 const memory = new Map<string, string>();
 const listeners = new Set<() => void>();
 
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+if (Platform.OS === "web" && typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (!event.key || event.key === GUEST_NAME_KEY) {
+      if (!window.localStorage.getItem(GUEST_NAME_KEY)) {
+        memory.delete(GUEST_NAME_KEY);
+        notify();
+      }
+    }
+  });
+}
+
 export function getGuestName(): string | null {
   try {
-    const value =
-      Platform.OS === "web"
-        ? typeof window === "undefined"
-          ? null
-          : window.localStorage.getItem(GUEST_NAME_KEY)
-        : SecureStore.getItem(GUEST_NAME_KEY);
+    if (Platform.OS === "web") {
+      if (typeof window === "undefined") return memory.get(GUEST_NAME_KEY) ?? null;
+      const value = window.localStorage.getItem(GUEST_NAME_KEY);
+      if (!value) {
+        memory.delete(GUEST_NAME_KEY);
+        return null;
+      }
+      return value;
+    }
+    const value = SecureStore.getItem(GUEST_NAME_KEY);
     return value ?? memory.get(GUEST_NAME_KEY) ?? null;
   } catch {
     return memory.get(GUEST_NAME_KEY) ?? null;
@@ -32,7 +51,7 @@ export function setGuestName(name: string) {
   } catch {
     /* fallback to memory */
   }
-  listeners.forEach((listener) => listener());
+  notify();
 }
 
 export function clearGuestName() {
@@ -48,7 +67,7 @@ export function clearGuestName() {
   } catch {
     /* fallback to memory */
   }
-  listeners.forEach((listener) => listener());
+  notify();
 }
 
 export function subscribeGuestName(listener: () => void) {
@@ -92,4 +111,3 @@ export function dismissGuestPromo() {
     /* fallback */
   }
 }
-
