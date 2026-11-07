@@ -11,6 +11,6 @@ export default function AuthLayout() {
     "session-error",
   );
   if (isPending) return <SessionStatus />;
-  if (session) return <Redirect href="/" />;
+  if (session && !session.user.isAnonymous) return <Redirect href="/" />;
   return <Slot />;
 }

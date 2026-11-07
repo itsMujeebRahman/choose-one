@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { expo } from "@better-auth/expo";
+import { anonymous } from "better-auth/plugins";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "../database/schema";
 
@@ -71,6 +72,12 @@ export function createAuth(env: AuthBindings) {
       "https://appleid.apple.com",
       ...allowedOrigins(env),
     ],
-    plugins: [expo()],
+    plugins: [
+      anonymous({
+        emailDomainName: "guest.chooseone.app",
+        generateName: () => "Guest",
+      }),
+      expo(),
+    ],
   });
 }

@@ -6,9 +6,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import ChoiceCard from "../../../components/choice-card";
 import DecisionButton from "../../../components/decision-card/decision-button";
 import FightLoader from "../../../components/feedback/fight-loader";
+import { useAppSession } from "../../../lib/session";
 import { timeAgo } from "../../../lib/date";
 import {
   useChoiceListsQuery,
@@ -20,6 +22,8 @@ import { useThemeStyles } from "../../../theme/theme";
 export default function ListsScreen() {
   const insets = useSafeAreaInsets();
   const [s, c] = useThemeStyles(createStyles);
+  const { data: session } = useAppSession();
+  const isGuest = Boolean(session?.user?.isAnonymous);
   const {
     data: lists = [],
     isLoading: loading,
@@ -29,9 +33,18 @@ export default function ListsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      void refetch();
-    }, [refetch]),
+      if (!isGuest) void refetch();
+    }, [isGuest, refetch]),
   );
+
+  function handleCreate() {
+    if (isGuest) {
+      toast.info("Sign in to create your own Choice Lists.");
+      router.push("/auth");
+      return;
+    }
+    router.push("/choice-lists/new");
+  }
 
   const active = lists.filter((l) => l.pickCount < l.optionCount);
   const completed = lists.filter((l) => l.pickCount === l.optionCount);
@@ -71,7 +84,7 @@ export default function ListsScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Create a new choice list"
-            onPress={() => router.push("/choice-lists/new")}
+            onPress={handleCreate}
             style={({ pressed }) => [
               s.createButton,
               pressed && { opacity: 0.75 },
@@ -97,7 +110,19 @@ export default function ListsScreen() {
           A fresh pick, every time. Keep your favourites together and try them
           all.
         </Text>
-        {loading ? (
+        {isGuest ? (
+          <View style={s.guestNotice}>
+            <Text style={s.guestNoticeTitle}>Sign in for Choice Lists</Text>
+            <Text style={s.guestNoticeBody}>
+              Choice Lists are saved to your account so you can pick from them
+              without repeats anytime.
+            </Text>
+            <DecisionButton
+              label="Sign in to create lists ↗"
+              onPress={() => router.push("/auth")}
+            />
+          </View>
+        ) : loading ? (
           <FightLoader style={s.loader} />
         ) : failed ? (
           <DecisionButton
@@ -173,4 +198,24 @@ const createStyles = (c: ThemeColors) =>
     },
     cards: { gap: 12 },
     loader: { marginVertical: 12 },
+    guestNotice: {
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      padding: 24,
+      gap: 12,
+      marginTop: 8,
+    },
+    guestNoticeTitle: {
+      fontFamily: f.medium,
+      fontSize: 20,
+      color: c.ink,
+      letterSpacing: -0.4,
+    },
+    guestNoticeBody: {
+      fontFamily: f.regular,
+      fontSize: 15,
+      lineHeight: 22,
+      color: c.muted,
+      marginBottom: 6,
+    },
   });

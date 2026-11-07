@@ -64,6 +64,13 @@
       "when": 1793914932951,
       "tag": "0008_wide_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794040260476,
+      "tag": "0009_lively_captain_marvel",
+      "breakpoints": true
     }
   ]
 }

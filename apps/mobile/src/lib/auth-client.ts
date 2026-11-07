@@ -1,4 +1,7 @@
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import {
+  anonymousClient,
+  inferAdditionalFields,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
 import * as SecureStore from "expo-secure-store";
@@ -10,6 +13,7 @@ if (!baseURL)
 export const authClient = createAuthClient({
   baseURL,
   plugins: [
+    anonymousClient(),
     inferAdditionalFields({
       user: {
         nameConfirmed: {
@@ -17,6 +21,11 @@ export const authClient = createAuthClient({
           defaultValue: false,
           required: false,
           input: true,
+        },
+        isAnonymous: {
+          type: "boolean",
+          defaultValue: false,
+          required: false,
         },
       },
     }),

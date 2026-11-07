@@ -6,7 +6,7 @@ import { choiceList, choiceListOption, user } from "../../database";
 export class ListError extends Error {
   constructor(
     message: string,
-    public status: 400 | 404 | 409 = 400,
+    public status: 400 | 403 | 404 | 409 = 400,
   ) {
     super(message);
   }

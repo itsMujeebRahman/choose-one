@@ -4,6 +4,7 @@ import { randomUUID } from "expo-crypto";
 import { router } from "expo-router";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
+import DecisionButton from "../../../components/decision-card/decision-button";
 import FlippingPlaceholder from "../../../components/decision-card/flipping-placeholder";
 import OptionsForm, {
   type DecisionOption,
@@ -11,6 +12,7 @@ import OptionsForm, {
 import { useCreateChoiceListMutation } from "../../../services/choice-lists";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useTheme, useThemeStyles } from "../../../theme/theme";
+import { useAppSession } from "../../../lib/session";
 
 const choiceListPlaceholders = [
   "Restaurants to try",
@@ -23,6 +25,8 @@ const choiceListPlaceholders = [
 export default function NewChoiceList() {
   const [s, c] = useThemeStyles(createStyles);
   const { isDark } = useTheme();
+  const { data: session } = useAppSession();
+  const isGuest = Boolean(session?.user?.isAnonymous);
   const createListMutation = useCreateChoiceListMutation();
   const [title, setTitle] = useState("");
   const [titleFocused, setTitleFocused] = useState(false);
@@ -74,6 +78,28 @@ export default function NewChoiceList() {
       saving.current = false;
       setBusy(false);
     }
+  }
+
+  if (isGuest) {
+    return (
+      <ProfilePage
+        backTo="/lists"
+        backLabel="Back to Choice Lists"
+        title="Choice Lists"
+      >
+        <View style={s.card}>
+          <Text style={s.heading}>Sign in to create Choice Lists</Text>
+          <Text style={s.caption}>
+            Choice Lists stay saved to your account so you can pick from them
+            anytime without repeats.
+          </Text>
+          <DecisionButton
+            label="Sign in to get started ↗"
+            onPress={() => router.push("/auth")}
+          />
+        </View>
+      </ProfilePage>
+    );
   }
 
   return (

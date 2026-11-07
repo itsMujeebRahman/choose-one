@@ -22,6 +22,7 @@ export const previewSession = {
         emailVerified: true,
         image: null,
         nameConfirmed: true,
+        isAnonymous: false,
         createdAt: now,
         updatedAt: now,
       },
@@ -29,6 +30,33 @@ export const previewSession = {
         id: "preview-session",
         userId: "preview-user",
         token: "local-preview-only",
+        expiresAt: new Date(now.getTime() + 86400000),
+        createdAt: now,
+        updatedAt: now,
+        ipAddress: null,
+        userAgent: null,
+      },
+    };
+    listeners.forEach((listener) => listener());
+  },
+  signInGuest() {
+    const now = new Date();
+    session = {
+      user: {
+        id: "preview-guest-user",
+        name: "Guest",
+        email: "guest@guest.chooseone.app",
+        emailVerified: false,
+        image: null,
+        nameConfirmed: false,
+        isAnonymous: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: "preview-guest-session",
+        userId: "preview-guest-user",
+        token: "local-preview-guest-only",
         expiresAt: new Date(now.getTime() + 86400000),
         createdAt: now,
         updatedAt: now,

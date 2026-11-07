@@ -1,6 +1,7 @@
 import {
   useAppSession,
   startPreviewSession,
+  startGuestPreviewSession,
   isAuthPreview,
 } from "../../lib/session";
 import { useErrorToast } from "../../hooks/use-error-toast";
@@ -16,8 +17,9 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
+import Svg, { Circle, Path } from "react-native-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { authClient } from "../../lib/auth-client";
 import FightLoader from "../feedback/fight-loader";
@@ -64,9 +66,10 @@ export function MoodGarden({ compact = false }: { compact?: boolean }) {
 export default function AuthScreen() {
   const [s, c] = useThemeStyles(createStyles);
   const { width } = useWindowDimensions();
-  const { refetch } = useAppSession();
+  const { data: session, refetch } = useAppSession();
+  const isGuest = Boolean(session?.user?.isAnonymous);
   const wide = width >= 900;
-  const [busy, setBusy] = useState<"google" | "apple" | null>(null);
+  const [busy, setBusy] = useState<"google" | "apple" | "guest" | null>(null);
   const params = useLocalSearchParams<{ error?: string }>();
   useErrorToast(
     params.error,
@@ -75,6 +78,34 @@ export default function AuthScreen() {
   );
   function reportError(message: string) {
     toast.error(message);
+  }
+  async function handleGuest() {
+    if (busy) return;
+    if (isGuest) {
+      if (router.canGoBack()) router.back();
+      else router.replace("/");
+      return;
+    }
+    if (isAuthPreview) {
+      if (startGuestPreviewSession()) {
+        router.replace("/complete-profile");
+      }
+      return;
+    }
+    setBusy("guest");
+    try {
+      const result = await authClient.signIn.anonymous();
+      if (result?.error) {
+        reportError(result.error.message ?? "Couldn’t continue as guest.");
+      } else {
+        await refetch();
+        router.replace("/complete-profile");
+      }
+    } catch {
+      reportError("Couldn’t connect as guest. Please try again.");
+    } finally {
+      setBusy(null);
+    }
   }
   async function signIn(provider: "google" | "apple") {
     if (busy) return;
@@ -189,6 +220,44 @@ export default function AuthScreen() {
             </Pressable>
           ))}
           <Text style={s.note}>No password to remember. Just you.</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              isGuest ? "Stay as a guest" : "Continue as a guest"
+            }
+            disabled={!!busy}
+            onPress={handleGuest}
+            style={({ pressed }) => [
+              s.guestButton,
+              (pressed || busy) && { opacity: 0.65 },
+            ]}
+          >
+            {busy === "guest" ? (
+              <FightLoader decorative style={s.buttonLoader} />
+            ) : (
+              <View style={s.guestContent}>
+                <View style={s.guestIcon}>
+                  <Svg
+                    width={18}
+                    height={18}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.ink}
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    accessible={false}
+                  >
+                    <Circle cx={12} cy={8} r={4} />
+                    <Path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+                  </Svg>
+                </View>
+                <Text style={s.guestButtonText}>
+                  {isGuest ? "Stay as a guest" : "Continue as a guest"}
+                </Text>
+              </View>
+            )}
+          </Pressable>
           <View style={s.bottomNote}>
             <View style={s.miniDot} />
             <Text style={s.bottomText}>
@@ -471,6 +540,33 @@ const createStyles = (c: ThemeColors) =>
       fontSize: 12,
       color: c.muted,
       marginTop: 15,
+    },
+    guestButton: {
+      borderRadius: radius.pill,
+      minHeight: 52,
+      marginTop: 14,
+      backgroundColor: "transparent",
+      borderWidth: 1.5,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+    },
+    guestContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    guestIcon: {
+      width: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 8,
+    },
+    guestButtonText: {
+      fontFamily: f.medium,
+      fontSize: 15,
+      color: c.ink,
     },
     bottomNote: {
       flexDirection: "row",

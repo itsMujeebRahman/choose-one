@@ -14,7 +14,7 @@ const uuid =
 
 type ChoiceListContext = Context<{
   Bindings: AuthBindings;
-  Variables: { owner: string; preview: boolean };
+  Variables: { owner: string; preview: boolean; isAnonymous: boolean };
 }>;
 
 export async function listChoiceLists(c: ChoiceListContext) {
@@ -23,6 +23,9 @@ export async function listChoiceLists(c: ChoiceListContext) {
 }
 
 export async function createChoiceList(c: ChoiceListContext) {
+  if (c.get("isAnonymous")) {
+    throw new ListError("Sign in with an account to create Choice Lists.", 403);
+  }
   const input = await c.req.json().catch(() => null);
   if (
     !input ||
@@ -87,7 +90,7 @@ export async function pickChoiceListOption(c: ChoiceListContext) {
 
 export const choiceListController = new Hono<{
   Bindings: AuthBindings;
-  Variables: { owner: string; preview: boolean };
+  Variables: { owner: string; preview: boolean; isAnonymous: boolean };
 }>();
 
 choiceListController.onError((error, c) => {
@@ -112,6 +115,10 @@ choiceListController.use("*", async (c, next) => {
     return c.json({ message: "Please sign in to use your lists." }, 401);
   c.set("owner", owner);
   c.set("preview", !!preview);
+  c.set(
+    "isAnonymous",
+    Boolean((session?.user as { isAnonymous?: boolean } | undefined)?.isAnonymous),
+  );
   try {
     await next();
   } catch (error) {

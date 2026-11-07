@@ -1,16 +1,30 @@
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { toast } from "sonner-native";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 import { useThemeStyles } from "../../theme/theme";
+import { useAppSession } from "../../lib/session";
 
 export default function ListInvitation() {
   const [s] = useThemeStyles(createStyles);
+  const { data: session } = useAppSession();
+  const isGuest = Boolean(session?.user?.isAnonymous);
+
+  function handlePress() {
+    if (isGuest) {
+      toast.info("Sign in to create your own Choice Lists.");
+      router.push("/auth");
+      return;
+    }
+    router.push("/choice-lists/new");
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Create a Choice List"
       accessibilityHint="Opens the create choice list page"
-      onPress={() => router.push("/choice-lists/new")}
+      onPress={handlePress}
       style={({ pressed }) => [s.card, pressed && { opacity: 0.75 }]}
     >
       <View style={s.topRow}>

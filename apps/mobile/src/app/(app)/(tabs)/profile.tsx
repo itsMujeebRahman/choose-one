@@ -36,6 +36,78 @@ export default function ProfileScreen() {
     }
   }
 
+  if (session.user.isAnonymous) {
+    return (
+      <SafeAreaView edges={["top", "left", "right"]} style={s.page}>
+        <ScrollView
+          contentContainerStyle={[
+            s.content,
+            { paddingBottom: Math.max(insets.bottom, 16) + 100 },
+          ]}
+        >
+          <Text style={s.title}>Your profile.</Text>
+          <View style={s.guestCard}>
+            <View style={s.guestBadge}>
+              <Text style={s.guestBadgeText}>GUEST</Text>
+            </View>
+            <Text style={s.guestTitle}>{session.user.name}</Text>
+            <Text style={s.guestSubtitle}>
+              You’re browsing as a guest. Sign in to keep your decision
+              history, build Choice Lists, and sync your profile across devices.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sign in"
+              onPress={() => router.push("/auth")}
+              style={({ pressed }) => [
+                s.signInButton,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Text style={s.signInButtonText}>Sign in ↗</Text>
+            </Pressable>
+          </View>
+          <View style={s.sections}>
+            <ProfileSection
+              title="Settings"
+              onPress={() => router.push("/account/settings")}
+            />
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={signOut}
+            disabled={busy}
+            style={({ pressed }) => [
+              s.button,
+              (pressed || busy) && { opacity: 0.65 },
+            ]}
+          >
+            {busy ? (
+              <FightLoader decorative style={s.buttonLoader} />
+            ) : (
+              <View style={s.logoutContent}>
+                <Svg
+                  width={20}
+                  height={20}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={c.ink}
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  accessible={false}
+                >
+                  <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9" />
+                </Svg>
+                <Text style={s.buttonText}>Leave guest mode</Text>
+              </View>
+            )}
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.page}>
       <ScrollView
@@ -115,6 +187,51 @@ const createStyles = (c: ThemeColors) =>
       marginBottom: 28,
     },
     sections: { gap: 12, marginTop: 28 },
+    guestCard: {
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      padding: 28,
+      gap: 12,
+    },
+    guestBadge: {
+      alignSelf: "flex-start",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      backgroundColor: c.surface,
+    },
+    guestBadgeText: {
+      fontFamily: f.medium,
+      fontSize: 10,
+      letterSpacing: 1.2,
+      color: c.muted,
+    },
+    guestTitle: {
+      fontFamily: f.medium,
+      fontSize: 24,
+      lineHeight: 30,
+      color: c.ink,
+      letterSpacing: -0.5,
+    },
+    guestSubtitle: {
+      fontFamily: f.regular,
+      fontSize: 15,
+      lineHeight: 22,
+      color: c.muted,
+    },
+    signInButton: {
+      marginTop: 8,
+      backgroundColor: c.ink,
+      borderRadius: 999,
+      minHeight: 52,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    signInButtonText: {
+      fontFamily: f.medium,
+      fontSize: 16,
+      color: c.surface,
+    },
     button: {
       backgroundColor: c.peachLight,
       borderRadius: 999,

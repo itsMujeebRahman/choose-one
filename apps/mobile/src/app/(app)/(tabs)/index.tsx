@@ -2,13 +2,19 @@ import ListInvitation from "../../../components/choice-lists/list-invitation";
 import { sessionCardColor } from "../../../lib/session-card-color";
 import KeyboardAwareScrollView from "../../../components/home/keyboard-aware-scroll-view";
 import MascotPrompt from "../../../components/home/mascot-prompt";
-import { useRef, useState, type ComponentRef } from "react";
+import GuestPromoCard from "../../../components/home/guest-promo-card";
+import { useCallback, useRef, useState, type ComponentRef } from "react";
 import { StyleSheet, View } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { BlurTargetView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeHeader from "../../../components/home/home-header";
 import DecisionCard from "../../../components/decision-card/decision-card";
 import { useAppSession } from "../../../lib/session";
+import {
+  dismissGuestPromo,
+  shouldShowGuestPromo,
+} from "../../../lib/guest-storage";
 import { type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
 
@@ -18,6 +24,24 @@ export default function HomeScreen() {
   const target = useRef<ComponentRef<typeof View> | null>(null);
   const [headerHeight, setHeaderHeight] = useState(insets.top + 96);
   const { data: session } = useAppSession();
+  const isGuest = Boolean(session?.user?.isAnonymous);
+  const [showGuestPromo, setShowGuestPromo] = useState(() =>
+    isGuest ? shouldShowGuestPromo() : false,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isGuest) {
+        setShowGuestPromo(shouldShowGuestPromo());
+      }
+    }, [isGuest]),
+  );
+
+  function handleDismissGuestPromo() {
+    dismissGuestPromo();
+    setShowGuestPromo(false);
+  }
+
   if (!session) return null;
   const sectionStyle = {
     paddingLeft: insets.left + 20,
@@ -49,6 +73,11 @@ export default function HomeScreen() {
               )}
             />
           </View>
+          {isGuest && showGuestPromo && (
+            <View style={sectionStyle}>
+              <GuestPromoCard onDismiss={handleDismissGuestPromo} />
+            </View>
+          )}
           <View style={sectionStyle}>
             <ListInvitation />
           </View>

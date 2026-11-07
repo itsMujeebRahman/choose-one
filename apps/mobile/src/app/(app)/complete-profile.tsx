@@ -1,18 +1,17 @@
 import { useAppSession } from "../../lib/session";
+import { setGuestName } from "../../lib/guest-storage";
 import { toast } from "sonner-native";
 import { useState } from "react";
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import KeyboardAwareScrollView from "../../components/home/keyboard-aware-scroll-view";
 import { authClient } from "../../lib/auth-client";
 import FightLoader from "../../components/feedback/fight-loader";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
@@ -30,7 +29,7 @@ export default function CompleteProfile() {
     toast.error(message);
   }
   async function save() {
-    if (busy) return;
+    if (!session || busy) return;
     const value = name.trim();
     if (!value || value.length > 100) {
       reportError("Choose a username between 1 and 100 characters.");
@@ -38,6 +37,13 @@ export default function CompleteProfile() {
     }
     setBusy(true);
     try {
+      if (session.user.isAnonymous) {
+        setGuestName(value);
+        toast.success("You’re all set. Welcome home!");
+        await refetch();
+        router.replace("/");
+        return;
+      }
       const result = await authClient.updateUser({
         name: value,
         nameConfirmed: true,
@@ -59,51 +65,47 @@ export default function CompleteProfile() {
   }
   return (
     <SafeAreaView style={s.page}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      <KeyboardAwareScrollView
+        headerHeight={0}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={s.content}
       >
-        <ScrollView
-          contentContainerStyle={s.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={s.card}>
-            <Text style={s.brand}>❖ choose one</Text>
-            <Text style={s.title}>Make yourself{"\n"}at home.</Text>
-            <Text style={s.body}>
-              Pick a username. That’s all we need to get started.
-            </Text>
-            <Text style={s.label}>Username</Text>
-            <TextInput
-              accessibilityLabel="Username"
-              placeholder="Your username"
-              placeholderTextColor={c.muted}
-              keyboardAppearance={isDark ? "dark" : "light"}
-              autoCapitalize="none"
-              autoCorrect={false}
-              maxLength={100}
-              value={name}
-              onChangeText={setName}
-              style={s.input}
-              editable={!busy}
-              returnKeyType="done"
-              onSubmitEditing={save}
-            />
-            <Pressable
-              accessibilityRole="button"
-              disabled={busy}
-              onPress={save}
-              style={s.button}
-            >
-              {busy ? (
-                <FightLoader decorative style={s.buttonLoader} />
-              ) : (
-                <Text style={s.buttonText}>Make myself at home ↗</Text>
-              )}
-            </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <View style={s.card}>
+          <Text style={s.brand}>❖ choose one</Text>
+          <Text style={s.title}>Make yourself{"\n"}at home.</Text>
+          <Text style={s.body}>
+            Pick a username. That’s all we need to get started.
+          </Text>
+          <Text style={s.label}>Username</Text>
+          <TextInput
+            accessibilityLabel="Username"
+            placeholder="Your username"
+            placeholderTextColor={c.muted}
+            keyboardAppearance={isDark ? "dark" : "light"}
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={100}
+            value={name}
+            onChangeText={setName}
+            style={s.input}
+            editable={!busy}
+            returnKeyType="done"
+            onSubmitEditing={save}
+          />
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={save}
+            style={s.button}
+          >
+            {busy ? (
+              <FightLoader decorative style={s.buttonLoader} />
+            ) : (
+              <Text style={s.buttonText}>Make myself at home ↗</Text>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
