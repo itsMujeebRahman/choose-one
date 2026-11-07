@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import { authClient } from "../lib/auth-client";
-import { endSession, isAuthPreview } from "../lib/session";
+import { endSession } from "../lib/session";
 
 export type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
@@ -21,9 +21,7 @@ export async function apiClient<T>(
     ...options.headers,
   };
 
-  if (isAuthPreview) {
-    headers["x-auth-preview"] = "true";
-  } else if (Platform.OS !== "web") {
+  if (Platform.OS !== "web") {
     const cookie = await authClient.getCookie();
     if (cookie) headers.Cookie = cookie;
   }

@@ -1,9 +1,4 @@
-import {
-  useAppSession,
-  startPreviewSession,
-  startGuestPreviewSession,
-  isAuthPreview,
-} from "../../lib/session";
+import { useAppSession } from "../../lib/session";
 import { useErrorToast } from "../../hooks/use-error-toast";
 import SocialIcon from "./social-icon";
 import { toast } from "sonner-native";
@@ -86,12 +81,6 @@ export default function AuthScreen() {
       else router.replace("/");
       return;
     }
-    if (isAuthPreview) {
-      if (startGuestPreviewSession()) {
-        router.replace("/complete-profile");
-      }
-      return;
-    }
     setBusy("guest");
     try {
       const result = await authClient.signIn.anonymous();
@@ -109,12 +98,6 @@ export default function AuthScreen() {
   }
   async function signIn(provider: "google" | "apple") {
     if (busy) return;
-    if (isAuthPreview) {
-      if (provider === "google" && startPreviewSession())
-        toast.success("Welcome, Max!");
-      else toast.info("Use Google to open the temporary test account.");
-      return;
-    }
     if (Platform.OS !== "web" && Constants.appOwnership === "expo") {
       reportError(
         "Social sign-in needs a development build. Open Choose One in its development build to continue.",

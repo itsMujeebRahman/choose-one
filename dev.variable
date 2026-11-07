@@ -1,0 +1,2 @@
+# true = production URLs; false = development URLs. Restart after changing.
+production=false

@@ -45,14 +45,14 @@
     "@types/react": "~19.3.0"
   },
   "scripts": {
-    "start": "node ../../scripts/dev-server.mjs mobile start",
+    "start": "node ../../dev.mjs mobile start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "node ../../scripts/dev-server.mjs mobile start --android",
-    "ios": "node ../../scripts/dev-server.mjs mobile start --ios",
-    "web": "node ../../scripts/dev-server.mjs mobile start --web",
+    "android": "node ../../dev.mjs mobile start --android",
+    "ios": "node ../../dev.mjs mobile start --ios",
+    "web": "node ../../dev.mjs mobile start --web",
     "lint": "expo lint",
-    "build": "expo export --platform web",
-    "serve": "node ../../scripts/dev-server.mjs mobile serve",
+    "build": "node ../../dev.mjs mobile export --platform web",
+    "serve": "node ../../dev.mjs mobile serve",
     "typecheck": "tsc --noEmit"
   },
   "private": true
