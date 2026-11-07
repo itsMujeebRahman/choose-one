@@ -3,7 +3,6 @@ import {
   nextAnswerColorIndex,
   storedAnswerColorIndex,
 } from "../../lib/color-storage";
-import { randomUUID } from "expo-crypto";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import { toast } from "sonner-native";
@@ -96,13 +95,6 @@ export default function DecisionCard({
       toast.error("Give each option a different name.");
       return;
     }
-    const signature = JSON.stringify({
-      title: problemTitle.trim(),
-      options: values,
-    });
-    if (submission.current?.signature !== signature)
-      submission.current = { signature, id: randomUUID() };
-    const requestId = submission.current.id;
     Keyboard.dismiss();
     busy.current = true;
     setStage("loading");
@@ -115,7 +107,7 @@ export default function DecisionCard({
         chooseOption(
           problemTitle.trim(),
           values,
-          requestId,
+          undefined,
           request.signal,
         ).then(
           (value) => ({ value, error: null }),

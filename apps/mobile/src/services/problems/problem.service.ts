@@ -9,12 +9,12 @@ export type ChooseResult = {
 export async function chooseOption(
   title: string,
   options: string[],
-  requestId: string,
+  requestId?: string,
   signal?: AbortSignal,
 ): Promise<string> {
   const data = await apiClient<ChooseResult>("/api/choose", {
     method: "POST",
-    body: { title, options, requestId },
+    body: { title, options, ...(requestId ? { requestId } : {}) },
     signal,
   });
 

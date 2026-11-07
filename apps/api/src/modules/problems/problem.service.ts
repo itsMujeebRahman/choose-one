@@ -7,7 +7,7 @@ export class ChoiceConflict extends Error {}
 export type SaveProblemInput = {
   title: string;
   options: string[];
-  requestId: string;
+  requestId?: string;
 };
 type SaveProblemArgs = {
   connectionString: string;
@@ -32,6 +32,7 @@ export async function saveProblemChoice({
     byte.toString(16).padStart(2, "0"),
   ).join("");
   async function findExisting() {
+    if (!requestId) return null;
     const [existing] = await db
       .select({
         problemId: problem.id,
@@ -69,67 +70,84 @@ export async function saveProblemChoice({
   if (existing) return existing;
   const chosen = chooseRandomOption(options);
   const now = new Date();
-  const rows = options.map((label, index) => ({
-    id: crypto.randomUUID(),
-    problemId: requestId,
-    userId: ownerId,
-    label,
-    sortOrder: index + 1,
-    isSelected: index === chosen.index,
-    selectedOrder: index === chosen.index ? 1 : null,
-    metadata:
-      index === chosen.index
-        ? {
-            selection: {
-              algorithm: "crypto_uniform_v1",
-              chosenAt: now.toISOString(),
-              metadata: { optionCount: options.length },
-            },
-          }
-        : {},
-  }));
-  const writes = [
-    db.insert(problem).values({
-      id: requestId,
-      userId: ownerId,
-      title,
-      status: "chosen",
-      chosenAt: now,
-      metadata: {
-        submission: fingerprint,
-        source: preview ? "local-preview" : "app",
-      },
-    }),
-    db.insert(problemOption).values(rows),
-  ] as const;
+
+  if (preview) {
+    await db
+      .insert(user)
+      .values({
+        id: ownerId,
+        name: "Max",
+        email: `${ownerId}@preview.invalid`,
+        nameConfirmed: true,
+      })
+      .onConflictDoNothing({ target: user.id });
+  }
+
   try {
-    // Neon HTTP batch executes all statements as one database transaction.
-    if (preview) {
-      await db.batch([
-        db
-          .insert(user)
-          .values({
-            id: ownerId,
-            name: "Max",
-            email: `${ownerId}@preview.invalid`,
-            nameConfirmed: true,
-          })
-          .onConflictDoNothing({ target: user.id }),
-        ...writes,
-      ]);
-    } else await db.batch(writes);
+    const [createdProblem] = await db
+      .insert(problem)
+      .values({
+        ...(requestId ? { id: requestId } : {}),
+        userId: ownerId,
+        title,
+        status: "chosen",
+        chosenAt: now,
+        metadata: {
+          submission: fingerprint,
+          source: preview ? "local-preview" : "app",
+        },
+      })
+      .returning({ id: problem.id });
+
+    const problemId = createdProblem.id;
+
+    const rows = options.map((label, index) => ({
+      problemId,
+      userId: ownerId,
+      label,
+      sortOrder: index + 1,
+      isSelected: index === chosen.index,
+      selectedOrder: index === chosen.index ? 1 : null,
+      metadata:
+        index === chosen.index
+          ? {
+              selection: {
+                algorithm: "crypto_uniform_v1",
+                chosenAt: now.toISOString(),
+                metadata: { optionCount: options.length },
+              },
+            }
+          : {},
+    }));
+
+    const insertedOptions = await db
+      .insert(problemOption)
+      .values(rows)
+      .returning({
+        id: problemOption.id,
+        label: problemOption.label,
+        sortOrder: problemOption.sortOrder,
+        selectedOrder: problemOption.selectedOrder,
+        isSelected: problemOption.isSelected,
+      });
+
+    const selectedOption =
+      insertedOptions.find((o) => o.isSelected) ?? insertedOptions[0];
+
+    return {
+      problemId,
+      optionId: selectedOption.id,
+      option: selectedOption.label,
+      selectedOrder: selectedOption.selectedOrder,
+      index: selectedOption.sortOrder - 1,
+    };
   } catch (error) {
-    // A concurrent duplicate submission may have committed while this one waited.
-    const replay = await findExisting();
-    if (replay) return replay;
+    if (requestId) {
+      const replay = await findExisting();
+      if (replay) return replay;
+    }
     throw error;
   }
-  return {
-    problemId: requestId,
-    optionId: rows[chosen.index].id,
-    selectedOrder: 1,
-    ...chosen,
-  };
 }
 
 export async function getProblemHistory(

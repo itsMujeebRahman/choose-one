@@ -10,7 +10,7 @@ export function useChooseOptionMutation() {
     {
       title: string;
       options: string[];
-      requestId: string;
+      requestId?: string;
       signal?: AbortSignal;
     }
   >({

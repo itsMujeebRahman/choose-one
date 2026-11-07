@@ -1,6 +1,5 @@
 import { useRef, useState, type ComponentRef } from "react";
 import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
-import { randomUUID } from "expo-crypto";
 import { router } from "expo-router";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
@@ -38,7 +37,6 @@ export default function NewChoiceList() {
   const [busy, setBusy] = useState(false);
   const titleInput = useRef<ComponentRef<typeof TextInput>>(null);
   const nextId = useRef(3);
-  const request = useRef({ signature: "", id: "" });
   const saving = useRef(false);
 
   async function save() {
@@ -54,15 +52,11 @@ export default function NewChoiceList() {
       toast.error("Give each option a different name.");
       return;
     }
-    const signature = JSON.stringify([title.trim(), values]);
-    if (request.current.signature !== signature)
-      request.current = { signature, id: randomUUID() };
     saving.current = true;
     setBusy(true);
     Keyboard.dismiss();
     try {
       const list = await createListMutation.mutateAsync({
-        id: request.current.id,
         title: title.trim(),
         options: values,
       });

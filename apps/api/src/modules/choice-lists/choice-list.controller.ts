@@ -29,8 +29,8 @@ export async function createChoiceList(c: ChoiceListContext) {
   const input = await c.req.json().catch(() => null);
   if (
     !input ||
-    typeof input.id !== "string" ||
-    !uuid.test(input.id) ||
+    (input.id !== undefined &&
+      (typeof input.id !== "string" || !uuid.test(input.id))) ||
     typeof input.title !== "string" ||
     !input.title.trim() ||
     input.title.trim().length > 100 ||
@@ -71,11 +71,13 @@ export async function getChoiceListDetail(c: ChoiceListContext) {
 export async function pickChoiceListOption(c: ChoiceListContext) {
   const id = c.req.param("id");
   const body = await c.req.json().catch(() => null);
+  if (!id || !uuid.test(id)) {
+    throw new ListError("Invalid list ID.");
+  }
   if (
-    !id ||
-    !uuid.test(id) ||
-    typeof body?.requestId !== "string" ||
-    !uuid.test(body.requestId)
+    body?.requestId !== undefined &&
+    body?.requestId !== null &&
+    (typeof body.requestId !== "string" || !uuid.test(body.requestId))
   ) {
     throw new ListError("Invalid pick request.");
   }
@@ -83,7 +85,7 @@ export async function pickChoiceListOption(c: ChoiceListContext) {
     c.env.DATABASE_URL!,
     c.get("owner"),
     id,
-    body.requestId,
+    body?.requestId,
   );
   return c.json(result);
 }

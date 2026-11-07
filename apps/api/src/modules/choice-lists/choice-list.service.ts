@@ -14,61 +14,67 @@ export class ListError extends Error {
 export async function createList(
   url: string,
   owner: string,
-  input: { id: string; title: string; options: string[] },
+  input: { id?: string; title: string; options: string[] },
   preview: boolean,
 ) {
   const db = drizzle(url);
-  const [existing] = await db
-    .select()
-    .from(choiceList)
-    .where(and(eq(choiceList.id, input.id), eq(choiceList.userId, owner)));
-  if (existing) {
-    const options = await db
+  if (input.id) {
+    const [existing] = await db
       .select()
-      .from(choiceListOption)
-      .where(eq(choiceListOption.listId, input.id))
-      .orderBy(choiceListOption.sortOrder);
-    if (
-      existing.title !== input.title ||
-      JSON.stringify(options.map((o) => o.label)) !==
-        JSON.stringify(input.options)
-    )
-      throw new ListError(
-        "This request was already used. Please start a new list.",
-        409,
-      );
-    return input.id;
+      .from(choiceList)
+      .where(and(eq(choiceList.id, input.id), eq(choiceList.userId, owner)));
+    if (existing) {
+      const options = await db
+        .select()
+        .from(choiceListOption)
+        .where(eq(choiceListOption.listId, input.id))
+        .orderBy(choiceListOption.sortOrder);
+      if (
+        existing.title !== input.title ||
+        JSON.stringify(options.map((o) => o.label)) !==
+          JSON.stringify(input.options)
+      )
+        throw new ListError(
+          "This request was already used. Please start a new list.",
+          409,
+        );
+      return input.id;
+    }
   }
-  const writes = [
-    db.insert(choiceList).values({
-      id: input.id,
+
+  if (preview) {
+    await db
+      .insert(user)
+      .values({
+        id: owner,
+        name: "Max",
+        email: `${owner}@preview.invalid`,
+        nameConfirmed: true,
+      })
+      .onConflictDoNothing();
+  }
+
+  const [createdList] = await db
+    .insert(choiceList)
+    .values({
+      ...(input.id ? { id: input.id } : {}),
       title: input.title,
       userId: owner,
       optionCount: input.options.length,
-    }),
-    db.insert(choiceListOption).values(
-      input.options.map((label, index) => ({
-        listId: input.id,
-        label,
-        sortOrder: index + 1,
-      })),
-    ),
-  ] as const;
-  if (preview)
-    await db.batch([
-      db
-        .insert(user)
-        .values({
-          id: owner,
-          name: "Max",
-          email: `${owner}@preview.invalid`,
-          nameConfirmed: true,
-        })
-        .onConflictDoNothing(),
-      ...writes,
-    ]);
-  else await db.batch(writes);
-  return input.id;
+    })
+    .returning({ id: choiceList.id });
+
+  const listId = createdList.id;
+
+  await db.insert(choiceListOption).values(
+    input.options.map((label, index) => ({
+      listId,
+      label,
+      sortOrder: index + 1,
+    })),
+  );
+
+  return listId;
 }
 export async function getLists(url: string, owner: string) {
   const db = drizzle(url);
@@ -113,8 +119,9 @@ export async function pickFromList(
   url: string,
   owner: string,
   id: string,
-  requestId: string,
+  requestId?: string,
 ) {
+  const effectiveRequestId = requestId || crypto.randomUUID();
   const sql = neon(url);
   // Serializable transactions prevent simultaneous requests from choosing the same
   // remaining option or assigning the same pick sequence. Retry serialization races.
@@ -125,7 +132,7 @@ export async function pickFromList(
           sql`WITH existing AS (
           SELECT o.id, o.label, o.selected_order FROM choice_list_option o
           JOIN choice_list l ON l.id=o.list_id
-          WHERE l.id=${id} AND l.user_id=${owner} AND o.pick_request_id=${requestId}
+          WHERE l.id=${id} AND l.user_id=${owner} AND o.pick_request_id=${effectiveRequestId}
         ), advanced AS (
           UPDATE choice_list SET pick_count=pick_count+1, updated_at=now()
           WHERE id=${id} AND user_id=${owner} AND pick_count<option_count AND NOT EXISTS (SELECT 1 FROM existing)
@@ -135,7 +142,7 @@ export async function pickFromList(
             SELECT id FROM choice_list_option WHERE list_id=a.id AND selected_order IS NULL ORDER BY random() LIMIT 1
           ) o
         ), picked AS (
-          UPDATE choice_list_option SET selected_order=a.pick_count, selected_at=now(), pick_request_id=${requestId}
+          UPDATE choice_list_option SET selected_order=a.pick_count, selected_at=now(), pick_request_id=${effectiveRequestId}
           FROM candidate a WHERE choice_list_option.id=a.id AND choice_list_option.selected_order IS NULL
           RETURNING choice_list_option.id, label, selected_order
         ) SELECT * FROM existing UNION ALL SELECT * FROM picked`,

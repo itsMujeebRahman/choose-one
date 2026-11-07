@@ -42,7 +42,7 @@ export function useCreateChoiceListMutation() {
 
 export function usePickFromChoiceListMutation() {
   const queryClient = useQueryClient();
-  return useMutation<PickResult, Error, { listId: string; requestId: string }>({
+  return useMutation<PickResult, Error, { listId: string; requestId?: string }>({
     mutationFn: ({ listId, requestId }) =>
       pickFromChoiceList(listId, requestId),
     onSuccess: (_, variables) => {

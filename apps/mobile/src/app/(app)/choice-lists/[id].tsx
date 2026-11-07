@@ -4,7 +4,6 @@ import ChoiceLoader, {
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
-import { randomUUID } from "expo-crypto";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
 import DecisionButton from "../../../components/decision-card/decision-button";
@@ -31,7 +30,6 @@ export default function ChoiceListScreen() {
   } = useChoiceListDetailQuery(id);
   const pickMutation = usePickFromChoiceListMutation();
   const [busy, setBusy] = useState(false);
-  const request = useRef<string | null>(null);
   const picking = useRef(false);
 
   useEffect(() => {
@@ -48,18 +46,16 @@ export default function ChoiceListScreen() {
     if (picking.current) return;
     picking.current = true;
     setBusy(true);
-    request.current ??= randomUUID();
     try {
       const [outcome] = await Promise.all([
         pickMutation
-          .mutateAsync({ listId: id, requestId: request.current })
+          .mutateAsync({ listId: id })
           .then((result) => ({ result, error: null }))
           .catch((error) => ({ result: null, error })),
         new Promise<void>((resolve) => setTimeout(resolve, 10000)),
       ]);
       if (outcome.error) throw outcome.error;
       const result = outcome.result!;
-      request.current = null;
       toast.success(`Your next choice: ${result.label}`);
       await refetch();
     } catch (error) {

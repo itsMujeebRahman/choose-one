@@ -19,9 +19,7 @@ function usePreviewSession() {
   );
   return { data, isPending: false, error: null, refetch: async () => {} };
 }
-const useRawSession = isAuthPreview
-  ? usePreviewSession
-  : authClient.useSession;
+const useRawSession = isAuthPreview ? usePreviewSession : authClient.useSession;
 
 export function useAppSession() {
   const result = useRawSession();

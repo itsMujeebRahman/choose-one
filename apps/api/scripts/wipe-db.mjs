@@ -48,14 +48,19 @@ Options:
 }
 
 const isHardReset = args.includes("--drop") || args.includes("--reset");
-const isForced = args.includes("--yes") || args.includes("-y") || args.includes("--force");
+const isForced =
+  args.includes("--yes") || args.includes("-y") || args.includes("--force");
 
 const connectionString =
   process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("❌ Error: DATABASE_URL or DATABASE_URL_UNPOOLED is not configured.");
-  console.error("Please ensure your database connection string is set in apps/api/.env.local");
+  console.error(
+    "❌ Error: DATABASE_URL or DATABASE_URL_UNPOOLED is not configured.",
+  );
+  console.error(
+    "Please ensure your database connection string is set in apps/api/.env.local",
+  );
   process.exit(1);
 }
 
@@ -68,7 +73,9 @@ try {
 
 console.log("\n⚠️  Choose One - Database Wipe Utility");
 console.log(`Target: ${host}`);
-console.log(`Action: ${isHardReset ? "DROP all schemas and re-run migrations from scratch" : "TRUNCATE all data in all tables (keeps schema intact)"}\n`);
+console.log(
+  `Action: ${isHardReset ? "DROP all schemas and re-run migrations from scratch" : "TRUNCATE all data in all tables (keeps schema intact)"}\n`,
+);
 
 if (!isForced && input.isTTY) {
   const rl = readline.createInterface({ input, output });
@@ -126,7 +133,9 @@ if (isHardReset) {
   const quotedList = tableNames.map((t) => `"${t}"`).join(", ");
   await sql.query(`TRUNCATE TABLE ${quotedList} RESTART IDENTITY CASCADE;`);
 
-  console.log("\n✨ All tables wiped clean (0 records remaining). Schema preserved!");
+  console.log(
+    "\n✨ All tables wiped clean (0 records remaining). Schema preserved!",
+  );
 }
 
 clearLocalStorageAndCaches();

@@ -181,7 +181,7 @@ export const problemOption = pgTable(
 export const choiceList = pgTable(
   "choice_list",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),

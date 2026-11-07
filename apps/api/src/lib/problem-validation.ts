@@ -6,7 +6,6 @@ export function parseProblemInput(body: unknown): SaveProblemInput {
     !body ||
     typeof body !== "object" ||
     !("title" in body) ||
-    !("requestId" in body) ||
     !("options" in body)
   ) {
     throw new Error("Enter a problem name and options.");
@@ -18,17 +17,25 @@ export function parseProblemInput(body: unknown): SaveProblemInput {
   ) {
     throw new Error("Problem names must contain 1–100 characters.");
   }
+  let requestId: string | undefined;
   if (
-    typeof body.requestId !== "string" ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      body.requestId,
-    )
+    "requestId" in body &&
+    body.requestId !== undefined &&
+    body.requestId !== null
   ) {
-    throw new Error("Invalid request ID.");
+    if (
+      typeof body.requestId !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        body.requestId,
+      )
+    ) {
+      throw new Error("Invalid request ID.");
+    }
+    requestId = body.requestId;
   }
   return {
     title: body.title.trim(),
-    requestId: body.requestId,
+    requestId,
     options: parseOptions(body.options),
   };
 }

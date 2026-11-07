@@ -22,7 +22,7 @@ export type ListOption = {
 export type ListDetail = ChoiceList & { options: ListOption[] };
 
 export type CreateListInput = {
-  id: string;
+  id?: string;
   title: string;
   options: string[];
 };
@@ -54,10 +54,10 @@ export async function createChoiceList(
 
 export async function pickFromChoiceList(
   listId: string,
-  requestId: string,
+  requestId?: string,
 ): Promise<PickResult> {
   return apiClient<PickResult>(`/api/choice-lists/${listId}/pick`, {
     method: "POST",
-    body: { requestId },
+    body: requestId ? { requestId } : {},
   });
 }

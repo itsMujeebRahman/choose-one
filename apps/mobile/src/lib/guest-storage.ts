@@ -23,7 +23,8 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
 export function getGuestName(): string | null {
   try {
     if (Platform.OS === "web") {
-      if (typeof window === "undefined") return memory.get(GUEST_NAME_KEY) ?? null;
+      if (typeof window === "undefined")
+        return memory.get(GUEST_NAME_KEY) ?? null;
       const value = window.localStorage.getItem(GUEST_NAME_KEY);
       if (!value) {
         memory.delete(GUEST_NAME_KEY);
