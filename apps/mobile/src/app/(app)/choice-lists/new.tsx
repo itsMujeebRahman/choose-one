@@ -1,26 +1,38 @@
-import { useRef, useState } from "react";
-import { Keyboard, StyleSheet, Text, TextInput } from "react-native";
+import { useRef, useState, type ComponentRef } from "react";
+import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import { randomUUID } from "expo-crypto";
 import { router } from "expo-router";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
+import FlippingPlaceholder from "../../../components/decision-card/flipping-placeholder";
 import OptionsForm, {
   type DecisionOption,
 } from "../../../components/decision-card/options-form";
 import { useCreateChoiceListMutation } from "../../../services/choice-lists";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
-import { useThemeStyles } from "../../../theme/theme";
+import { useTheme, useThemeStyles } from "../../../theme/theme";
+
+const choiceListPlaceholders = [
+  "Restaurants to try",
+  "Movies for movie night",
+  "Weekend getaway ideas",
+  "Books on my reading list",
+  "Coffee shops to explore",
+];
 
 export default function NewChoiceList() {
   const [s, c] = useThemeStyles(createStyles);
+  const { isDark } = useTheme();
   const createListMutation = useCreateChoiceListMutation();
   const [title, setTitle] = useState("");
+  const [titleFocused, setTitleFocused] = useState(false);
   const [options, setOptions] = useState<DecisionOption[]>([
     { id: 0, value: "" },
     { id: 1, value: "" },
     { id: 2, value: "" },
   ]);
   const [busy, setBusy] = useState(false);
+  const titleInput = useRef<ComponentRef<typeof TextInput>>(null);
   const nextId = useRef(3);
   const request = useRef({ signature: "", id: "" });
   const saving = useRef(false);
@@ -70,59 +82,86 @@ export default function NewChoiceList() {
       backLabel="Back to Choice Lists"
       title="New Choice List"
     >
-      <Text style={s.body}>
-        Add 3–20 options. Each pick removes one, so every option gets its turn.
-      </Text>
-      <TextInput
-        accessibilityLabel="Choice List name"
-        placeholder="Restaurants to try"
-        placeholderTextColor={c.muted}
-        value={title}
-        onChangeText={setTitle}
-        maxLength={100}
-        editable={!busy}
-        returnKeyType="default"
-        submitBehavior="submit"
-        onSubmitEditing={Keyboard.dismiss}
-        style={s.titleInput}
-        underlineColorAndroid="transparent"
-      />
-      <OptionsForm
-        options={options}
-        minOptions={3}
-        maxOptions={20}
-        caption={`Your options · ${options.length}/20`}
-        submitLabel={busy ? "Saving your list…" : "Save my Choice List ↗"}
-        onChange={(id, value) =>
-          setOptions((current) =>
-            current.map((option) =>
-              option.id === id ? { ...option, value } : option,
-            ),
-          )
-        }
-        onRemove={(id) =>
-          setOptions((current) => current.filter((option) => option.id !== id))
-        }
-        onAdd={() =>
-          setOptions((current) =>
-            current.length < 20
-              ? [...current, { id: nextId.current++, value: "" }]
-              : current,
-          )
-        }
-        onSubmit={save}
-      />
+      <View style={s.card}>
+        <View style={s.header}>
+          <Text style={s.heading}>Give your list a name</Text>
+          <Text style={s.caption}>
+            Add 3–20 options. Each pick removes one, so every option gets its turn.
+          </Text>
+        </View>
+        <View>
+          <TextInput
+            ref={titleInput}
+            accessibilityLabel="Choice List name"
+            placeholderTextColor={c.muted}
+            value={title}
+            onChangeText={setTitle}
+            onFocus={() => setTitleFocused(true)}
+            onBlur={() => setTitleFocused(false)}
+            maxLength={100}
+            editable={!busy}
+            keyboardAppearance={isDark ? "dark" : "light"}
+            returnKeyType="default"
+            submitBehavior="submit"
+            onSubmitEditing={Keyboard.dismiss}
+            style={s.titleInput}
+            underlineColorAndroid="transparent"
+          />
+          {!title && !titleFocused && (
+            <FlippingPlaceholder placeholders={choiceListPlaceholders} />
+          )}
+        </View>
+        <OptionsForm
+          options={options}
+          heading="Enter your options"
+          minOptions={3}
+          maxOptions={20}
+          caption={`Your options - ${options.length}/20`}
+          submitLabel={busy ? "Saving your list…" : "Save my Choice List"}
+          onChange={(id, value) =>
+            setOptions((current) =>
+              current.map((option) =>
+                option.id === id ? { ...option, value } : option,
+              ),
+            )
+          }
+          onRemove={(id) =>
+            setOptions((current) => current.filter((option) => option.id !== id))
+          }
+          onAdd={() =>
+            setOptions((current) =>
+              current.length < 20
+                ? [...current, { id: nextId.current++, value: "" }]
+                : current,
+            )
+          }
+          onSubmit={save}
+        />
+      </View>
     </ProfilePage>
   );
 }
 
 const createStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    body: {
-      fontFamily: f.regular,
-      fontSize: 16,
-      color: c.muted,
+    card: {
+      backgroundColor: c.peachLight,
+      borderRadius: 36,
+      padding: 28,
+      gap: 16,
+    },
+    header: { gap: 4, marginBottom: 4 },
+    heading: {
+      fontFamily: f.medium,
+      fontSize: 18,
       lineHeight: 24,
+      color: c.ink,
+    },
+    caption: {
+      fontFamily: f.regular,
+      fontSize: 14,
+      lineHeight: 20,
+      color: c.muted,
     },
     titleInput: {
       minHeight: 58,

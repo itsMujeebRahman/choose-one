@@ -8,6 +8,10 @@ import { randomUUID } from "expo-crypto";
 import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
 import DecisionButton from "../../../components/decision-card/decision-button";
+import {
+  answerColorCount,
+  getAnswerColors,
+} from "../../../components/decision-card/choice-result";
 import FightLoader from "../../../components/feedback/fight-loader";
 import {
   useChoiceListDetailQuery,
@@ -18,7 +22,7 @@ import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
 
 export default function ChoiceListScreen() {
-  const [s] = useThemeStyles(createStyles);
+  const [s, c] = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     data: list,
@@ -73,6 +77,11 @@ export default function ChoiceListScreen() {
       .sort((a, b) => a.selectedOrder! - b.selectedOrder!) ?? [];
   const remaining = list?.options.filter((o) => o.selectedOrder === null) ?? [];
   const latest = selected[selected.length - 1];
+  const latestColor = latest
+    ? getAnswerColors(c)[
+        ((latest.selectedOrder ?? 1) - 1) % answerColorCount
+      ]
+    : undefined;
   return (
     <ProfilePage
       backTo="/lists"
@@ -86,15 +95,15 @@ export default function ChoiceListScreen() {
       ) : (
         <>
           <Text style={s.body}>
-            {list.pickCount} of {list.optionCount} chosen · {remaining.length}{" "}
+            {list.pickCount} of {list.optionCount} chosen - {remaining.length}{" "}
             left to try
           </Text>
           {!busy && latest && (
-            <View style={s.answer}>
+            <View style={[s.answer, { backgroundColor: latestColor }]}>
               <Text style={s.body}>YOUR LATEST PICK</Text>
               <Text style={s.title}>{latest.label}</Text>
               <Text style={s.body}>
-                Pick {latest.selectedOrder} · {fullDate(latest.selectedAt)}
+                Pick {latest.selectedOrder} - {fullDate(latest.selectedAt)}
               </Text>
             </View>
           )}

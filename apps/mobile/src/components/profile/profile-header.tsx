@@ -1,12 +1,7 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import Svg, { Circle, Path } from "react-native-svg";
+import FightLoader from "../feedback/fight-loader";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 import { useThemeStyles } from "../../theme/theme";
 
@@ -69,7 +64,7 @@ export default function ProfileHeader({
 
           {isEditingImage && (
             <View style={s.loadingOverlay}>
-              <ActivityIndicator size="small" color={c.surface} />
+              <FightLoader decorative style={s.avatarLoader} />
             </View>
           )}
 
@@ -135,6 +130,7 @@ const createStyles = (c: ThemeColors) =>
       borderRadius: 34,
       backgroundColor: c.lavender,
     },
+    avatarLoader: { width: 56, maxWidth: 56 },
     loadingOverlay: {
       ...StyleSheet.absoluteFill,
       borderRadius: 34,

@@ -36,11 +36,16 @@ export default function ListsScreen() {
   const active = lists.filter((l) => l.pickCount < l.optionCount);
   const completed = lists.filter((l) => l.pickCount === l.optionCount);
   function card(list: ChoiceList) {
+    const remaining = list.optionCount - list.pickCount;
     return (
       <ChoiceCard
         key={list.id}
         title={list.title}
-        meta={`${list.optionCount} options · ${list.pickCount} picked`}
+        meta={
+          remaining === 0
+            ? `All ${list.optionCount} chosen - complete`
+            : `${list.pickCount} of ${list.optionCount} chosen - ${remaining} left`
+        }
         date={timeAgo(list.updatedAt)}
         result={list.latestResult}
         emptyLabel="No pick yet"

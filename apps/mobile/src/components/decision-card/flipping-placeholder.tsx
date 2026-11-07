@@ -50,11 +50,18 @@ function CubeFace({
   );
 }
 
-export default function FlippingPlaceholder() {
+type FlippingPlaceholderProps = {
+  placeholders?: string[];
+};
+
+export default function FlippingPlaceholder({
+  placeholders = examples,
+}: FlippingPlaceholderProps = {}) {
   const [styles] = useThemeStyles(createStyles);
+  const items = placeholders.length >= 2 ? placeholders : examples;
   const [faces, setFaces] = useState<[string, string]>([
-    examples[0],
-    examples[1],
+    items[0],
+    items[1],
   ]);
   const progress = useSharedValue(0);
   useEffect(() => {
@@ -65,7 +72,7 @@ export default function FlippingPlaceholder() {
       const hiddenSlot = (completedTurn + 1) % 2;
       setFaces((current) => {
         const next: [string, string] = [...current];
-        next[hiddenSlot] = examples[(completedTurn + 1) % examples.length];
+        next[hiddenSlot] = items[(completedTurn + 1) % items.length];
         return next;
       });
     }
@@ -90,7 +97,7 @@ export default function FlippingPlaceholder() {
       clearInterval(timer);
       cancelAnimation(progress);
     };
-  }, [progress]);
+  }, [items, progress]);
   return (
     <View
       pointerEvents="none"

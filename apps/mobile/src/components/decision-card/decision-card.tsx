@@ -11,14 +11,13 @@ import { chooseOption } from "../../services/problems";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 import { useTheme, useThemeStyles } from "../../theme/theme";
 import ProblemTitleInput from "./problem-title-input";
-import OptionsQuestion from "./options-question";
 import EditProblemButton from "./edit-problem-button";
 import OptionsForm, { type DecisionOption } from "./options-form";
 import ChoiceLoader, { preloadChoiceLoader } from "./choice-loader";
 import ChoiceResult, { answerColorCount } from "./choice-result";
 import Animated, { FadeOut } from "react-native-reanimated";
 
-type Stage = "title" | "question" | "options" | "loading" | "result";
+type Stage = "title" | "options" | "loading" | "result";
 export default function DecisionCard({
   userName,
   backgroundColor,
@@ -79,6 +78,10 @@ export default function DecisionCard({
     setProblemTitle(title);
     setEditingTitle(false);
     Keyboard.dismiss();
+  }
+  function notYet() {
+    Keyboard.dismiss();
+    setStage("title");
   }
   async function choose() {
     if (busy.current) return;
@@ -154,7 +157,7 @@ export default function DecisionCard({
             }
             setProblemTitle(problemTitle.trim());
             Keyboard.dismiss();
-            setStage("question");
+            setStage("options");
           }}
         />
       ) : (
@@ -192,15 +195,10 @@ export default function DecisionCard({
           </View>
         </View>
       )}
-      {stage === "question" && !editingTitle && (
-        <OptionsQuestion
-          onContinue={() => setStage("options")}
-          onCancel={startNewDecision}
-        />
-      )}
       {stage === "options" && !editingTitle && (
         <OptionsForm
           options={options}
+          heading="Enter your options"
           onChange={(id, value) =>
             setOptions((current) =>
               current.map((option) =>
@@ -221,6 +219,7 @@ export default function DecisionCard({
             )
           }
           onSubmit={choose}
+          onCancel={notYet}
         />
       )}
       {stage === "loading" && (

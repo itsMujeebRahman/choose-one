@@ -1,8 +1,7 @@
 import ListInvitation from "../../../components/choice-lists/list-invitation";
 import { sessionCardColor } from "../../../lib/session-card-color";
 import KeyboardAwareScrollView from "../../../components/home/keyboard-aware-scroll-view";
-import ScrollPreviewCards from "../../../components/home/scroll-preview-cards";
-import DoctorPrompt from "../../../components/home/doctor-prompt";
+import MascotPrompt from "../../../components/home/mascot-prompt";
 import { useRef, useState, type ComponentRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { BlurTargetView } from "expo-blur";
@@ -31,7 +30,7 @@ export default function HomeScreen() {
           headerHeight={headerHeight}
           style={{ flex: 1 }}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets
+          automaticallyAdjustKeyboardInsets={false}
           contentInsetAdjustmentBehavior="never"
           contentContainerStyle={{
             flexGrow: 1,
@@ -39,7 +38,7 @@ export default function HomeScreen() {
             paddingBottom: Math.max(insets.bottom, 16) + 100,
           }}
         >
-          <DoctorPrompt />
+          <MascotPrompt />
           <View style={sectionStyle}>
             <DecisionCard
               userName={session.user.name}
@@ -52,9 +51,6 @@ export default function HomeScreen() {
           </View>
           <View style={sectionStyle}>
             <ListInvitation />
-          </View>
-          <View style={sectionStyle}>
-            <ScrollPreviewCards />
           </View>
         </KeyboardAwareScrollView>
       </BlurTargetView>

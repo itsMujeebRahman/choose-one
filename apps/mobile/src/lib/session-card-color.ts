@@ -4,7 +4,6 @@ import { type ThemeColors } from "../theme/tokens";
 const paletteKeys = [
   "peachLight",
   "lavender",
-  "mint",
   "yellow",
   "blue",
   "coral",

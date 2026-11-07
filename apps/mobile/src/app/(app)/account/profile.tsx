@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,11 +9,12 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { toast } from "sonner-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
+import FightLoader from "../../../components/feedback/fight-loader";
 import ProfilePage from "../../../components/profile/profile-page";
-import ProfileHeader from "../../../components/profile/profile-header";
 import { useAppSession } from "../../../lib/session";
 import { useUpdateProfileMutation } from "../../../services/profile";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
@@ -140,16 +140,69 @@ export default function AccountProfileScreen() {
           contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <ProfileHeader
-            name={session.user.name}
-            email={session.user.email}
-            image={session.user.image}
-            onEditImage={handlePickImage}
-            isEditingImage={isUploadingImage}
-          />
+          {/* Centered profile photo with absolute edit pen icon */}
+          <View style={s.photoSection}>
+            <View style={s.avatarWrapper}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Change profile picture"
+                onPress={handlePickImage}
+                disabled={isUploadingImage}
+                style={({ pressed }) => [
+                  s.avatarTouchArea,
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                {session.user.image ? (
+                  <Image
+                    source={{ uri: session.user.image }}
+                    style={s.avatarImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                ) : (
+                  <View style={s.avatarFallback}>
+                    <Svg
+                      width={44}
+                      height={44}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={c.ink}
+                      strokeWidth={1.6}
+                      strokeLinecap="round"
+                      accessible={false}
+                    >
+                      <Circle cx={12} cy={8} r={4} />
+                      <Path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+                    </Svg>
+                  </View>
+                )}
 
-          {session.user.image ? (
-            <View style={s.photoActions}>
+                {isUploadingImage && (
+                  <View style={s.loadingOverlay}>
+                    <FightLoader decorative style={s.avatarLoader} />
+                  </View>
+                )}
+
+                <View style={s.editBadge} pointerEvents="none">
+                  <Svg
+                    width={14}
+                    height={14}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.surface}
+                    strokeWidth={2.2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    accessible={false}
+                  >
+                    <Path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                  </Svg>
+                </View>
+              </Pressable>
+            </View>
+
+            {session.user.image ? (
               <Pressable
                 accessibilityRole="button"
                 onPress={handleRemoveImage}
@@ -161,8 +214,8 @@ export default function AccountProfileScreen() {
               >
                 <Text style={s.removePhotoText}>Remove photo</Text>
               </Pressable>
-            </View>
-          ) : null}
+            ) : null}
+          </View>
 
           <View style={s.card}>
             <View style={s.rowHeader}>
@@ -234,7 +287,7 @@ export default function AccountProfileScreen() {
                     ]}
                   >
                     {isSavingName ? (
-                      <ActivityIndicator size="small" color={c.surface} />
+                      <FightLoader decorative style={s.buttonLoader} />
                     ) : (
                       <Text style={s.saveButtonText}>Save</Text>
                     )}
@@ -264,17 +317,61 @@ const createStyles = (c: ThemeColors) =>
   StyleSheet.create({
     wrapper: { flex: 1 },
     scrollContent: { gap: 16 },
-    card: {
-      backgroundColor: c.surface,
-      borderRadius: 36,
-      padding: 24,
-      gap: 10,
-    },
-    photoActions: {
-      flexDirection: "row",
+    photoSection: {
+      alignItems: "center",
       justifyContent: "center",
-      marginTop: -4,
-      marginBottom: 4,
+      marginVertical: 8,
+      gap: 12,
+    },
+    avatarWrapper: {
+      position: "relative",
+    },
+    avatarTouchArea: {
+      position: "relative",
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+    },
+    avatarFallback: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: c.lavender,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarImage: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: c.lavender,
+    },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFill,
+      borderRadius: 48,
+      backgroundColor: "rgba(0, 0, 0, 0.45)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarLoader: { width: 76, maxWidth: 76 },
+    buttonLoader: { width: 64, maxWidth: 64 },
+    editBadge: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: c.ink,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2.5,
+      borderColor: c.background,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2.5,
+      elevation: 4,
     },
     removePhotoButton: {
       paddingVertical: 6,
@@ -286,6 +383,12 @@ const createStyles = (c: ThemeColors) =>
       fontFamily: f.medium,
       fontSize: 13,
       color: c.ink,
+    },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: 36,
+      padding: 24,
+      gap: 10,
     },
     rowHeader: {
       flexDirection: "row",

@@ -1,23 +1,25 @@
 import { StyleSheet, Text, View } from "react-native";
-import FightLoader, { preloadFightLoader } from "../feedback/fight-loader";
+import ScientistsLoader, {
+  preloadScientistsLoader,
+} from "../feedback/scientists-loader";
 import { useThemeStyles } from "../../theme/theme";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 
-export { preloadFightLoader as preloadChoiceLoader };
+export { preloadScientistsLoader as preloadChoiceLoader };
 
 export default function ChoiceLoader() {
   const [s] = useThemeStyles(createStyles);
   return (
     <View
       accessibilityRole="progressbar"
-      accessibilityLabel="Two doodle characters playfully fighting while your options are considered"
+      accessibilityLabel="Three doodle potato scientists discussing your options in a lab"
       accessibilityLiveRegion="polite"
       style={s.container}
     >
-      <FightLoader decorative style={s.sticker} />
-      <Text style={s.title}>A tiny showdown…</Text>
+      <ScientistsLoader decorative style={s.sticker} />
+      <Text style={s.title}>The potato scientists are on it…</Text>
       <Text style={s.body}>
-        Two little fighters are battling over your answer.
+        They’re comparing your options to pick the finest one.
       </Text>
     </View>
   );

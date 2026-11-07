@@ -2,18 +2,19 @@ import { useCallback } from "react";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import DecisionButton from "../../../../components/decision-card/decision-button";
+import {
+  answerColorCount,
+  getAnswerColors,
+} from "../../../../components/decision-card/choice-result";
 import FightLoader from "../../../../components/feedback/fight-loader";
 import ProfilePage from "../../../../components/profile/profile-page";
-import {
-  formatHistoryDate,
-  formatHistoryDateTime,
-} from "../../../../lib/date";
+import { formatHistoryDate, formatHistoryDateTime } from "../../../../lib/date";
 import { useHistoryDetailQuery } from "../../../../services/history";
 import { fonts as f, type ThemeColors } from "../../../../theme/tokens";
 import { useThemeStyles } from "../../../../theme/theme";
 
 export default function HistoryDetailScreen() {
-  const [s] = useThemeStyles(createStyles);
+  const [s, c] = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     data: choice = null,
@@ -29,6 +30,9 @@ export default function HistoryDetailScreen() {
   );
 
   const chosen = choice?.options.find((option) => option.isSelected);
+  const answerColor = chosen
+    ? getAnswerColors(c)[(chosen.sortOrder - 1) % answerColorCount]
+    : undefined;
   return (
     <ProfilePage
       title={choice?.title ?? "Choice"}
@@ -55,11 +59,11 @@ export default function HistoryDetailScreen() {
             {chosen
               ? `Chosen ${formatHistoryDate(choice.chosenAt ?? choice.createdAt)}`
               : `Saved ${formatHistoryDate(choice.createdAt)}`}{" "}
-            · {choice.options.length} option
+            - {choice.options.length} option
             {choice.options.length === 1 ? "" : "s"} considered
           </Text>
           {chosen ? (
-            <View style={s.answer}>
+            <View style={[s.answer, { backgroundColor: answerColor }]}>
               <Text style={s.eyebrow}>YOUR CHOICE</Text>
               <Text selectable style={s.answerTitle}>
                 {chosen.label}

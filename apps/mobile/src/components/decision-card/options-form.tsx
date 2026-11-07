@@ -15,7 +15,9 @@ type Props = {
   minOptions?: number;
   maxOptions?: number;
   submitLabel?: string;
+  heading?: string;
   caption?: string;
+  onCancel?: () => void;
 };
 export default function OptionsForm({
   options,
@@ -25,8 +27,10 @@ export default function OptionsForm({
   onSubmit,
   minOptions = 2,
   maxOptions = 10,
-  submitLabel = "Choose one for me ↗",
+  submitLabel = "Choose one for me",
+  heading,
   caption,
+  onCancel,
 }: Props) {
   const [s] = useThemeStyles(createStyles);
   const inputs = useRef(new Map<number, ComponentRef<typeof TextInput>>());
@@ -51,9 +55,12 @@ export default function OptionsForm({
   }
   return (
     <View style={s.form}>
-      <Text style={s.caption}>
-        {caption ?? `Your options · ${options.length}/${maxOptions}`}
-      </Text>
+      <View style={s.header}>
+        {heading ? <Text style={s.heading}>{heading}</Text> : null}
+        <Text style={s.caption}>
+          {caption ?? `${options.length}/${maxOptions} options`}
+        </Text>
+      </View>
       {options.map((option, index) => (
         <OptionInput
           key={option.id}
@@ -81,16 +88,25 @@ export default function OptionsForm({
       <View style={{ marginTop: 8 }}>
         <DecisionButton label={submitLabel} onPress={onSubmit} />
       </View>
+      {onCancel && (
+        <DecisionButton label="Not yet" secondary onPress={onCancel} />
+      )}
     </View>
   );
 }
 const createStyles = (c: ThemeColors) =>
   StyleSheet.create({
     form: { gap: 10, marginTop: 24 },
+    header: { gap: 4, marginBottom: 4 },
+    heading: {
+      fontFamily: f.medium,
+      fontSize: 18,
+      lineHeight: 24,
+      color: c.ink,
+    },
     caption: {
       fontFamily: f.medium,
       fontSize: 12,
       color: c.muted,
-      marginBottom: 4,
     },
   });
