@@ -7,7 +7,7 @@ import { randomUUID } from "expo-crypto";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import { toast } from "sonner-native";
-import { chooseOption } from "../../lib/choose-option";
+import { chooseOption } from "../../services/problems";
 import { fonts as f, type ThemeColors } from "../../theme/tokens";
 import { useTheme, useThemeStyles } from "../../theme/theme";
 import ProblemTitleInput from "./problem-title-input";

@@ -1,4 +1,4 @@
-import type { Context } from "hono";
+import { Hono, type Context } from "hono";
 import { createAuth, type AuthBindings } from "../../auth";
 import { localPreviewOwner } from "../../lib/preview-owner";
 import {
@@ -8,9 +8,12 @@ import {
   saveProblemChoice,
   type SaveProblemInput,
 } from "./problem.service";
-import { parseProblemInput } from "./problem.validation";
+import { parseProblemInput } from "../../lib/problem-validation";
 
 type ProblemContext = Context<{ Bindings: AuthBindings }>;
+
+const uuid =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function resolveOwner(c: ProblemContext) {
   const previewOwner = localPreviewOwner(c.env, c.req.raw);
@@ -97,3 +100,17 @@ export async function getProblemHistoryDetail(c: ProblemContext) {
     );
   }
 }
+
+export const problemController = new Hono<{ Bindings: AuthBindings }>();
+problemController.post("/choose", createProblemChoice);
+problemController.get("/history", listProblemHistory);
+problemController.get(
+  "/history/:id",
+  (c, next) => {
+    const id = c.req.param("id");
+    if (!id || !uuid.test(id))
+      return c.json({ message: "Choice not found." }, 404);
+    return next();
+  },
+  getProblemHistoryDetail,
+);

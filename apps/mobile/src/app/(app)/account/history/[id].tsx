@@ -1,46 +1,33 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-import { toast } from "sonner-native";
 import DecisionButton from "../../../../components/decision-card/decision-button";
 import FightLoader from "../../../../components/feedback/fight-loader";
 import ProfilePage from "../../../../components/profile/profile-page";
 import {
   formatHistoryDate,
   formatHistoryDateTime,
-  historyRequest,
-  type HistoryDetail,
-} from "../../../../lib/history";
+} from "../../../../lib/date";
+import { useHistoryDetailQuery } from "../../../../services/history";
 import { fonts as f, type ThemeColors } from "../../../../theme/tokens";
 import { useThemeStyles } from "../../../../theme/theme";
 
 export default function HistoryDetailScreen() {
   const [s] = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [choice, setChoice] = useState<HistoryDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      setChoice(await historyRequest<HistoryDetail>(`/${id}`));
-    } catch (error) {
-      setFailed(true);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Couldn’t load this choice. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const {
+    data: choice = null,
+    isLoading: loading,
+    isError: failed,
+    refetch,
+  } = useHistoryDetailQuery(id);
+
   useFocusEffect(
     useCallback(() => {
-      void load();
-    }, [load]),
+      void refetch();
+    }, [refetch]),
   );
+
   const chosen = choice?.options.find((option) => option.isSelected);
   return (
     <ProfilePage
@@ -56,7 +43,11 @@ export default function HistoryDetailScreen() {
           <Text style={s.body}>
             It may have been removed, or your connection dropped. Try again.
           </Text>
-          <DecisionButton label="Try again" secondary onPress={load} />
+          <DecisionButton
+            label="Try again"
+            secondary
+            onPress={() => void refetch()}
+          />
         </View>
       ) : (
         <>

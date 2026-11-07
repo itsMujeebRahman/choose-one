@@ -9,37 +9,37 @@ import { toast } from "sonner-native";
 import ProfilePage from "../../../components/profile/profile-page";
 import DecisionButton from "../../../components/decision-card/decision-button";
 import FightLoader from "../../../components/feedback/fight-loader";
-import { listRequest, type ListDetail } from "../../../lib/choice-lists";
+import {
+  useChoiceListDetailQuery,
+  usePickFromChoiceListMutation,
+} from "../../../services/choice-lists";
 import { fullDate } from "../../../lib/date";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
+
 export default function ChoiceListScreen() {
   const [s] = useThemeStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [list, setList] = useState<ListDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: list,
+    isLoading: loading,
+    refetch,
+  } = useChoiceListDetailQuery(id);
+  const pickMutation = usePickFromChoiceListMutation();
   const [busy, setBusy] = useState(false);
   const request = useRef<string | null>(null);
   const picking = useRef(false);
+
   useEffect(() => {
     void preloadChoiceLoader();
   }, []);
-  const load = useCallback(async () => {
-    try {
-      setList(await listRequest<ListDetail>(`/${id}`));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn’t load your list.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+
   useFocusEffect(
     useCallback(() => {
-      void load();
-    }, [load]),
+      void refetch();
+    }, [refetch]),
   );
+
   async function pick() {
     if (picking.current) return;
     picking.current = true;
@@ -47,19 +47,17 @@ export default function ChoiceListScreen() {
     request.current ??= randomUUID();
     try {
       const [outcome] = await Promise.all([
-        listRequest<{ label: string }>(`/${id}/pick`, {
-          requestId: request.current,
-        }).then(
-          (result) => ({ result, error: null }),
-          (error) => ({ result: null, error }),
-        ),
+        pickMutation
+          .mutateAsync({ listId: id, requestId: request.current })
+          .then((result) => ({ result, error: null }))
+          .catch((error) => ({ result: null, error })),
         new Promise<void>((resolve) => setTimeout(resolve, 10000)),
       ]);
       if (outcome.error) throw outcome.error;
       const result = outcome.result!;
       request.current = null;
       toast.success(`Your next choice: ${result.label}`);
-      await load();
+      await refetch();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Couldn’t pick an option.",
@@ -84,7 +82,7 @@ export default function ChoiceListScreen() {
       {loading ? (
         <FightLoader />
       ) : !list ? (
-        <DecisionButton label="Try again" onPress={load} />
+        <DecisionButton label="Try again" onPress={() => void refetch()} />
       ) : (
         <>
           <Text style={s.body}>

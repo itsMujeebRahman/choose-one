@@ -1,16 +1,16 @@
-import { profileRoutes } from "./modules/profile/profile.routes";
-import { choiceListRoutes } from "./modules/choice-lists/choice-list.routes";
-import { problemRoutes } from "./modules/problems/problem.routes";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { checkDatabase } from "./database";
 import { allowedOrigins, createAuth, type AuthBindings } from "./auth";
+import { problemController } from "./modules/problems/problem.controller";
+import { profileController } from "./modules/profile/profile.controller";
+import { choiceListController } from "./modules/choice-lists/choice-list.controller";
 
 const app = new Hono<{ Bindings: AuthBindings }>();
 app.use("*", async (c, next) =>
   cors({
     origin: allowedOrigins(c.env),
-    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "PUT", "OPTIONS"],
     allowHeaders: [
       "Content-Type",
       "Authorization",
@@ -24,9 +24,9 @@ app.use("*", async (c, next) =>
 app.get("/", (c) => c.text("Choose One API"));
 app.get("/health", (c) => c.json({ ok: true }));
 app.get("/api/database", (c) => checkDatabase(c.env.DATABASE_URL));
-app.route("/api", problemRoutes);
-app.route("/api", profileRoutes);
-app.route("/api/choice-lists", choiceListRoutes);
+app.route("/api", problemController);
+app.route("/api", profileController);
+app.route("/api/choice-lists", choiceListController);
 app.on(["GET", "POST"], "/api/auth/*", async (c) => {
   if (
     !c.env.DATABASE_URL ||

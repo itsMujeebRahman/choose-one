@@ -42,4 +42,17 @@ export const previewSession = {
     session = null;
     listeners.forEach((listener) => listener());
   },
+  updateUser(updates: { name?: string; image?: string | null }) {
+    if (session) {
+      session = {
+        ...session,
+        user: {
+          ...session.user,
+          ...updates,
+          updatedAt: new Date(),
+        },
+      };
+      listeners.forEach((listener) => listener());
+    }
+  },
 };

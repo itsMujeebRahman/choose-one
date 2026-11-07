@@ -1,7 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-import { toast } from "sonner-native";
 import ChoiceCard from "../../../../components/choice-card";
 import {
   answerColorCount,
@@ -11,37 +10,26 @@ import DecisionButton from "../../../../components/decision-card/decision-button
 import FightLoader from "../../../../components/feedback/fight-loader";
 import ProfilePage from "../../../../components/profile/profile-page";
 import { timeAgo } from "../../../../lib/date";
-import { historyRequest, type HistoryItem } from "../../../../lib/history";
+import { useHistoryQuery } from "../../../../services/history";
 import { fonts as f, type ThemeColors } from "../../../../theme/tokens";
 import { useThemeStyles } from "../../../../theme/theme";
 
 export default function HistoryScreen() {
   const [s, c] = useThemeStyles(createStyles);
   const answerColors = getAnswerColors(c);
-  const [items, setItems] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      setItems(await historyRequest<HistoryItem[]>());
-    } catch (error) {
-      setFailed(true);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Couldn’t load your history. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const {
+    data: items = [],
+    isLoading: loading,
+    isError: failed,
+    refetch,
+  } = useHistoryQuery();
+
   useFocusEffect(
     useCallback(() => {
-      void load();
-    }, [load]),
+      void refetch();
+    }, [refetch]),
   );
+
   return (
     <ProfilePage title="History">
       {loading ? (
@@ -52,7 +40,11 @@ export default function HistoryScreen() {
           <Text style={s.body}>
             Check your connection and try again in a moment.
           </Text>
-          <DecisionButton label="Try again" secondary onPress={load} />
+          <DecisionButton
+            label="Try again"
+            secondary
+            onPress={() => void refetch()}
+          />
         </View>
       ) : !items.length ? (
         <View style={s.card}>

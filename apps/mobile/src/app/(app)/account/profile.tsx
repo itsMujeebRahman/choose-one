@@ -1,40 +1,363 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { toast } from "sonner-native";
+import Svg, { Path } from "react-native-svg";
 import ProfilePage from "../../../components/profile/profile-page";
 import ProfileHeader from "../../../components/profile/profile-header";
 import { useAppSession } from "../../../lib/session";
+import { useUpdateProfileMutation } from "../../../services/profile";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
-import { useThemeStyles } from "../../../theme/theme";
+import { useTheme, useThemeStyles } from "../../../theme/theme";
 
 export default function AccountProfileScreen() {
-  const [s] = useThemeStyles(createStyles);
-  const { data: session } = useAppSession();
+  const { isDark } = useTheme();
+  const [s, c] = useThemeStyles(createStyles);
+  const { data: session, refetch } = useAppSession();
+  const updateProfileMutation = useUpdateProfileMutation();
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(session?.user?.name ?? "");
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   if (!session) return null;
+
+  const handlePickImage = async () => {
+    if (isUploadingImage) return;
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        toast.error(
+          "Permission to access photos is needed to change your picture.",
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.65,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const dataUri = asset.base64
+          ? `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`
+          : asset.uri;
+
+        setIsUploadingImage(true);
+        await updateProfileMutation.mutateAsync({ image: dataUri });
+        await refetch();
+        toast.success("Profile picture updated.");
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Couldn’t update profile picture.";
+      toast.error(message);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (isUploadingImage) return;
+    try {
+      setIsUploadingImage(true);
+      await updateProfileMutation.mutateAsync({ image: null });
+      await refetch();
+      toast.success("Profile picture removed.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Couldn’t remove profile picture.";
+      toast.error(message);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const startEditName = () => {
+    setNameInput(session.user.name);
+    setIsEditingName(true);
+  };
+
+  const cancelEditName = () => {
+    setNameInput(session.user.name);
+    setIsEditingName(false);
+  };
+
+  const handleSaveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) {
+      toast.error("Please enter a name.");
+      return;
+    }
+    if (trimmed === session.user.name) {
+      setIsEditingName(false);
+      return;
+    }
+    if (trimmed.length > 100) {
+      toast.error("Name must be 100 characters or fewer.");
+      return;
+    }
+
+    try {
+      setIsSavingName(true);
+      await updateProfileMutation.mutateAsync({ name: trimmed });
+      await refetch();
+      setIsEditingName(false);
+      toast.success("Name updated.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Couldn’t update your name.";
+      toast.error(message);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
   return (
     <ProfilePage title="Profile">
-      <ProfileHeader name={session.user.name} email={session.user.email} />
-      <View style={s.card}>
-        <Text style={s.label}>Name</Text>
-        <Text selectable style={s.value}>
-          {session.user.name}
-        </Text>
-        <View style={s.divider} />
-        <Text style={s.label}>Email</Text>
-        <Text selectable style={s.value}>
-          {session.user.email}
-        </Text>
-      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={s.wrapper}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ProfileHeader
+            name={session.user.name}
+            email={session.user.email}
+            image={session.user.image}
+            onEditImage={handlePickImage}
+            isEditingImage={isUploadingImage}
+          />
+
+          {session.user.image ? (
+            <View style={s.photoActions}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleRemoveImage}
+                disabled={isUploadingImage}
+                style={({ pressed }) => [
+                  s.removePhotoButton,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <Text style={s.removePhotoText}>Remove photo</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          <View style={s.card}>
+            <View style={s.rowHeader}>
+              <Text style={s.label}>Name</Text>
+              {!isEditingName && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={startEditName}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    s.editButton,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <Svg
+                    width={14}
+                    height={14}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.ink}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <Path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                  </Svg>
+                  <Text style={s.editText}>Edit</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {isEditingName ? (
+              <View style={s.editFieldContainer}>
+                <TextInput
+                  accessibilityLabel="Edit name"
+                  value={nameInput}
+                  onChangeText={setNameInput}
+                  autoFocus
+                  placeholder="Enter your name"
+                  placeholderTextColor={c.muted}
+                  keyboardAppearance={isDark ? "dark" : "light"}
+                  style={s.input}
+                  maxLength={100}
+                  editable={!isSavingName}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveName}
+                />
+                <View style={s.buttonRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={cancelEditName}
+                    disabled={isSavingName}
+                    style={({ pressed }) => [
+                      s.cancelButton,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Text style={s.cancelButtonText}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleSaveName}
+                    disabled={isSavingName || !nameInput.trim()}
+                    style={({ pressed }) => [
+                      s.saveButton,
+                      (pressed || isSavingName || !nameInput.trim()) && {
+                        opacity: 0.65,
+                      },
+                    ]}
+                  >
+                    {isSavingName ? (
+                      <ActivityIndicator size="small" color={c.surface} />
+                    ) : (
+                      <Text style={s.saveButtonText}>Save</Text>
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Text selectable style={s.value}>
+                {session.user.name}
+              </Text>
+            )}
+
+            <View style={s.divider} />
+
+            <Text style={s.label}>Email</Text>
+            <Text selectable style={s.value}>
+              {session.user.email}
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ProfilePage>
   );
 }
+
 const createStyles = (c: ThemeColors) =>
   StyleSheet.create({
+    wrapper: { flex: 1 },
+    scrollContent: { gap: 16 },
     card: {
       backgroundColor: c.surface,
       borderRadius: 36,
       padding: 24,
-      gap: 8,
+      gap: 10,
     },
-    label: { fontFamily: f.medium, fontSize: 12, color: c.muted },
+    photoActions: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: -4,
+      marginBottom: 4,
+    },
+    removePhotoButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      backgroundColor: c.peachLight,
+    },
+    removePhotoText: {
+      fontFamily: f.medium,
+      fontSize: 13,
+      color: c.ink,
+    },
+    rowHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    label: { fontFamily: f.medium, fontSize: 13, color: c.muted },
     value: { fontFamily: f.regular, fontSize: 18, color: c.ink },
-    divider: { height: 1, backgroundColor: c.border, marginVertical: 12 },
+    editButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      backgroundColor: c.peachLight,
+      borderRadius: 14,
+    },
+    editText: {
+      fontFamily: f.medium,
+      fontSize: 13,
+      color: c.ink,
+    },
+    editFieldContainer: {
+      gap: 12,
+      marginTop: 4,
+    },
+    input: {
+      fontFamily: f.regular,
+      fontSize: 16,
+      color: c.ink,
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 16,
+      minHeight: 48,
+      paddingHorizontal: 16,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 10,
+    },
+    cancelButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 999,
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelButtonText: {
+      fontFamily: f.medium,
+      fontSize: 14,
+      color: c.muted,
+    },
+    saveButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 22,
+      borderRadius: 999,
+      backgroundColor: c.ink,
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 76,
+      minHeight: 40,
+    },
+    saveButtonText: {
+      fontFamily: f.medium,
+      fontSize: 14,
+      color: c.surface,
+    },
+    divider: { height: 1, backgroundColor: c.border, marginVertical: 10 },
   });

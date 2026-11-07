@@ -1,5 +1,5 @@
-import { parseOptions } from "../../lib/random-choice";
-import type { SaveProblemInput } from "./problem.service";
+import { parseOptions } from "./random-choice";
+import type { SaveProblemInput } from "../modules/problems/problem.service";
 
 export function parseProblemInput(body: unknown): SaveProblemInput {
   if (

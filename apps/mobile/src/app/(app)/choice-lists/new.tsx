@@ -7,12 +7,13 @@ import ProfilePage from "../../../components/profile/profile-page";
 import OptionsForm, {
   type DecisionOption,
 } from "../../../components/decision-card/options-form";
-import { listRequest } from "../../../lib/choice-lists";
+import { useCreateChoiceListMutation } from "../../../services/choice-lists";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
 
 export default function NewChoiceList() {
   const [s, c] = useThemeStyles(createStyles);
+  const createListMutation = useCreateChoiceListMutation();
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState<DecisionOption[]>([
     { id: 0, value: "" },
@@ -44,7 +45,7 @@ export default function NewChoiceList() {
     setBusy(true);
     Keyboard.dismiss();
     try {
-      const list = await listRequest<{ id: string }>("", {
+      const list = await createListMutation.mutateAsync({
         id: request.current.id,
         title: title.trim(),
         options: values,

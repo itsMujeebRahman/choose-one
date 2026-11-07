@@ -1,4 +1,12 @@
 import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
+
+export * from "./schema";
+
+export function getDb(connectionString: string) {
+  return drizzle(connectionString, { schema });
+}
 
 export async function checkDatabase(connectionString?: string) {
   if (!connectionString) {

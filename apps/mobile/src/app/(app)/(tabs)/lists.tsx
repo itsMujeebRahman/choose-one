@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -6,39 +6,33 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { toast } from "sonner-native";
 import ChoiceCard from "../../../components/choice-card";
 import DecisionButton from "../../../components/decision-card/decision-button";
 import FightLoader from "../../../components/feedback/fight-loader";
 import { timeAgo } from "../../../lib/date";
-import { listRequest, type ChoiceList } from "../../../lib/choice-lists";
+import {
+  useChoiceListsQuery,
+  type ChoiceList,
+} from "../../../services/choice-lists";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
+
 export default function ListsScreen() {
   const insets = useSafeAreaInsets();
   const [s, c] = useThemeStyles(createStyles);
-  const [lists, setLists] = useState<ChoiceList[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      setLists(await listRequest<ChoiceList[]>());
-    } catch (error) {
-      setFailed(true);
-      toast.error(
-        error instanceof Error ? error.message : "Couldn’t load your lists.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const {
+    data: lists = [],
+    isLoading: loading,
+    isError: failed,
+    refetch,
+  } = useChoiceListsQuery();
+
   useFocusEffect(
     useCallback(() => {
-      void load();
-    }, [load]),
+      void refetch();
+    }, [refetch]),
   );
+
   const active = lists.filter((l) => l.pickCount < l.optionCount);
   const completed = lists.filter((l) => l.pickCount === l.optionCount);
   function card(list: ChoiceList) {
@@ -101,7 +95,11 @@ export default function ListsScreen() {
         {loading ? (
           <FightLoader style={s.loader} />
         ) : failed ? (
-          <DecisionButton label="Try again" secondary onPress={load} />
+          <DecisionButton
+            label="Try again"
+            secondary
+            onPress={() => void refetch()}
+          />
         ) : (
           <>
             <Text style={s.name}>In progress</Text>

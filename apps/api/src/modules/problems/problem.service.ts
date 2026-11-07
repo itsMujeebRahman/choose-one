@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
-import { problem, problemOption, user } from "../../db/schema";
+import { problem, problemOption, user } from "../../database";
 import { chooseRandomOption } from "../../lib/random-choice";
 
 export class ChoiceConflict extends Error {}

@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { and, desc, eq } from "drizzle-orm";
-import { choiceList, choiceListOption, user } from "../../db/schema";
+import { choiceList, choiceListOption, user } from "../../database";
 
 export class ListError extends Error {
   constructor(

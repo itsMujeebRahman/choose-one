@@ -1,5 +1,6 @@
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import ProfileHeader from "../../../components/profile/profile-header";
 import ProfileSection from "../../../components/profile/profile-section";
 import { useState } from "react";
@@ -11,15 +12,60 @@ import {
 import { toast } from "sonner-native";
 import FightLoader from "../../../components/feedback/fight-loader";
 import { endSession, useAppSession } from "../../../lib/session";
+import { useUpdateProfileMutation } from "../../../services/profile";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useThemeStyles } from "../../../theme/theme";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [s, c] = useThemeStyles(createStyles);
-  const { data: session } = useAppSession();
+  const { data: session, refetch } = useAppSession();
+  const updateProfileMutation = useUpdateProfileMutation();
   const [busy, setBusy] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   if (!session) return null;
+
+  const handlePickImage = async () => {
+    if (isUploadingImage) return;
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        toast.error(
+          "Permission to access photos is needed to change your picture.",
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.65,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const dataUri = asset.base64
+          ? `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`
+          : asset.uri;
+
+        setIsUploadingImage(true);
+        await updateProfileMutation.mutateAsync({ image: dataUri });
+        await refetch();
+        toast.success("Profile picture updated.");
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Couldn’t update profile picture.";
+      toast.error(message);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   async function signOut() {
     if (busy) return;
     setBusy(true);
@@ -33,6 +79,7 @@ export default function ProfileScreen() {
       setBusy(false);
     }
   }
+
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.page}>
       <ScrollView
@@ -42,7 +89,13 @@ export default function ProfileScreen() {
         ]}
       >
         <Text style={s.title}>Your profile.</Text>
-        <ProfileHeader name={session.user.name} email={session.user.email} />
+        <ProfileHeader
+          name={session.user.name}
+          email={session.user.email}
+          image={session.user.image}
+          onEditImage={handlePickImage}
+          isEditingImage={isUploadingImage}
+        />
         <View style={s.sections}>
           <ProfileSection
             title="Profile"

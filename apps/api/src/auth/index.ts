@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { expo } from "@better-auth/expo";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "./db/schema";
+import * as schema from "../database/schema";
 
 export type AuthBindings = {
   DATABASE_URL?: string;
@@ -15,12 +15,14 @@ export type AuthBindings = {
   APPLE_CLIENT_SECRET?: string;
   LOCAL_PREVIEW_USER_ID?: string;
 };
+
 export function allowedOrigins(env: AuthBindings) {
   return (env.CORS_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
 }
+
 export function createAuth(env: AuthBindings) {
   if (!env.DATABASE_URL || !env.BETTER_AUTH_SECRET || !env.BETTER_AUTH_URL) {
     throw new Error("Authentication environment is not configured.");

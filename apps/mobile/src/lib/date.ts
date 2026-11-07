@@ -37,3 +37,25 @@ export function fullDate(value: DateInput) {
     year: "numeric",
   });
 }
+
+export function formatHistoryDate(value: DateInput) {
+  const date = toDate(value);
+  if (!date) return "";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function formatHistoryDateTime(value: DateInput) {
+  const date = toDate(value);
+  if (!date) return "";
+  return date.toLocaleString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

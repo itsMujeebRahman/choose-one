@@ -1,3 +1,5 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "../lib/query-client";
 import { useErrorToast } from "../hooks/use-error-toast";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,9 +17,11 @@ import { ThemeProvider, useTheme } from "../theme/theme";
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
