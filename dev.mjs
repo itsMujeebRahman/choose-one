@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { resolve } from "node:path";
-import { readEnv, selectedApiUrl, expoDefaultPort, root } from "./env.config.mjs";
+import { readEnv, readApiUrl, expoDefaultPort, root } from "./env.config.mjs";
 
 const [workspace, ...forwarded] = process.argv.slice(2);
 const command = workspace === "mobile" ? (forwarded.shift() ?? "start") : "dev";
@@ -11,7 +11,7 @@ if (!["api", "mobile"].includes(workspace))
   throw new Error("Choose the api or mobile workspace.");
 const cwd = resolve(root, "apps", workspace);
 const env = { ...readEnv(cwd), ...process.env };
-const apiUrl = selectedApiUrl(env, workspace);
+const apiUrl = readApiUrl(env, workspace);
 const require = createRequire(resolve(cwd, "package.json"));
 if (args.some((arg) => /^--(?:port|inspector-port)(?:=|$)/.test(arg))) {
   throw new Error(

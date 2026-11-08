@@ -9,32 +9,27 @@ import { preserveOAuthSession } from "./preserve-oauth-session";
 export type AuthBindings = {
   DATABASE_URL?: string;
   BETTER_AUTH_SECRET?: string;
-  production?: string;
-  DEVELOPMENT_API_URL?: string;
-  PRODUCTION_API_URL?: string;
+  API_URL?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
-  GOOGLE_AUTH_URL?: string;
   APPLE_CLIENT_ID?: string;
   APPLE_CLIENT_SECRET?: string;
 };
 
 export function apiUrl(env: AuthBindings) {
-  if (env.production !== "true" && env.production !== "false")
-    throw new Error("Set production=true or production=false in the API environment.");
-  return env.production === "true" ? env.PRODUCTION_API_URL : env.DEVELOPMENT_API_URL;
+  return env.API_URL;
 }
 
 export function allowedOrigins(env: AuthBindings) {
+  const baseURL = apiUrl(env);
   const origins = new Set<string>();
-  for (const value of [apiUrl(env), env.GOOGLE_AUTH_URL]) {
-    if (value) origins.add(new URL(value).origin);
+  if (baseURL) {
+    const url = new URL(baseURL);
+    origins.add(url.origin);
+    if (url.protocol === "http:") origins.add(`http://${url.hostname}:8081`);
   }
-  if (env.production === "false") {
-    for (const host of ["localhost", "127.0.0.1", "[::1]", new URL(env.DEVELOPMENT_API_URL!).hostname]) {
-      origins.add(`http://${host}:8081`);
-    }
-  }
+  for (const host of ["localhost", "127.0.0.1", "[::1]"])
+    origins.add(`http://${host}:8081`);
   return [...origins];
 }
 
@@ -43,11 +38,6 @@ export function createAuth(env: AuthBindings) {
   if (!env.DATABASE_URL || !env.BETTER_AUTH_SECRET || !baseURL) {
     throw new Error("Authentication environment is not configured.");
   }
-  const googleRedirectURI =
-    (env.GOOGLE_AUTH_URL
-      ? `${env.GOOGLE_AUTH_URL.replace(/\/+$/, "")}/api/auth/callback/google`
-      : undefined);
-
   return betterAuth({
     appName: "Choose One",
     baseURL,
@@ -64,7 +54,6 @@ export function createAuth(env: AuthBindings) {
             google: {
               clientId: env.GOOGLE_CLIENT_ID,
               clientSecret: env.GOOGLE_CLIENT_SECRET,
-              ...(googleRedirectURI ? { redirectURI: googleRedirectURI } : {}),
             },
           }
         : {}),
@@ -91,7 +80,6 @@ export function createAuth(env: AuthBindings) {
       "chooseone://",
       "chooseone://*",
       "https://appleid.apple.com",
-      ...(env.GOOGLE_AUTH_URL ? [env.GOOGLE_AUTH_URL] : []),
       ...allowedOrigins(env),
     ],
     plugins: [

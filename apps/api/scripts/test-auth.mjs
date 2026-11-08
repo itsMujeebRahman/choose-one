@@ -1,11 +1,11 @@
-// Run only against an isolated test API; optionally pass its URL as the first argument.
+// Run only with API_URL pointing to an isolated test API. Optional first argument: provider.
 import assert from "node:assert/strict";
-import { readEnv, selectedApiUrl, root } from "../../../env.config.mjs";
+import { readEnv, readApiUrl, root } from "../../../env.config.mjs";
 import { resolve } from "node:path";
 const env = { ...readEnv(resolve(root, "apps/api")), ...process.env };
-const base = process.argv[2] || selectedApiUrl(env, "api").value;
+const base = readApiUrl(env, "api").value;
 const origin = "chooseone://";
-const provider = process.argv[3] || "google";
+const provider = process.argv[2] || "google";
 assert.ok(["google", "apple"].includes(provider));
 async function call(path, body) {
   return fetch(new URL(path, base), {
@@ -44,7 +44,7 @@ assert.equal(
 );
 assert.equal(
   authorizationURL.searchParams.get("redirect_uri"),
-  new URL(`/api/auth/callback/${provider}`, provider === "google" ? env.GOOGLE_AUTH_URL || base : base).href,
+  new URL(`/api/auth/callback/${provider}`, base).href,
 );
 console.log(
   "PASS: protected access, unauthenticated session, disabled password authentication, provider authorization URL. Real OAuth consent requires manual testing.",

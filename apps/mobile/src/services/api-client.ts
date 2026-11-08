@@ -48,11 +48,12 @@ export async function apiClient<T>(
     }
 
     checkSession();
-    const url = endpoint.startsWith("http")
-      ? endpoint
-      : new URL(endpoint.startsWith("/") ? endpoint : `/${endpoint}`, base).href;
+    const url = new URL(endpoint.startsWith("/") || /^https?:/i.test(endpoint) ? endpoint : `/${endpoint}`, base);
+    if (url.origin !== new URL(base).origin) {
+      throw new Error("API requests must use the configured API_URL.");
+    }
 
-    const response = await waitForRequest(fetch(url, {
+    const response = await waitForRequest(fetch(url.href, {
       method: options.method ?? (options.body ? "POST" : "GET"),
       headers,
       credentials: Platform.OS === "web" ? "include" : "omit",

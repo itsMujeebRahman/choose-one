@@ -178,3 +178,18 @@ test('a failed browser sign-in releases the loader without creating a session', 
   assert.equal(h.session.useAppSession().isPending, false);
   assert.equal(h.session.useAppSession().data, null);
 });
+
+test('API requests cannot bypass the configured API URL', async () => {
+  const h = harness();
+  let requests = 0;
+  h.network(async (url) => {
+    requests++;
+    assert.equal(new URL(url).origin, 'https://example.com');
+    return { ok: true, status: 200, json: async () => ({ ok: true }) };
+  });
+  for (const endpoint of ['https://other.example/api/profile', '//other.example/api/profile']) {
+    await assert.rejects(h.api.apiClient(endpoint), /configured API_URL/);
+  }
+  assert.equal(requests, 0);
+  assert.equal((await h.api.apiClient('/api/profile')).ok, true);
+});
