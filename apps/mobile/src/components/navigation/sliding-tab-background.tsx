@@ -9,7 +9,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import TabBarBackground from "./tab-bar-background";
-import { useTheme } from "../../theme/theme";
 
 export default function SlidingTabBackground({
   target,
@@ -22,7 +21,6 @@ export default function SlidingTabBackground({
   width: number;
   count?: number;
 }) {
-  const { isDark } = useTheme();
   const tabWidth = width / count;
   const offset = useSharedValue(activeIndex * tabWidth);
   useEffect(() => {
@@ -43,9 +41,6 @@ export default function SlidingTabBackground({
           styles.indicator,
           {
             width: tabWidth - 16,
-            backgroundColor: isDark
-              ? "rgba(255,255,255,0.14)"
-              : "rgba(235,220,210,0.65)",
           },
           animatedStyle,
         ]}

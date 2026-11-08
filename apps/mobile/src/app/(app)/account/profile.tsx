@@ -220,34 +220,7 @@ export default function AccountProfileScreen() {
           </View>
 
           <View style={s.card}>
-            <View style={s.rowHeader}>
-              <Text style={s.label}>Name</Text>
-              {!isEditingName && (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={startEditName}
-                  hitSlop={8}
-                  style={({ pressed }) => [
-                    s.editButton,
-                    pressed && { opacity: 0.7 },
-                  ]}
-                >
-                  <Svg
-                    width={14}
-                    height={14}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={c.ink}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <Path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                  </Svg>
-                  <Text style={s.editText}>Edit</Text>
-                </Pressable>
-              )}
-            </View>
+            <Text style={s.label}>Name</Text>
 
             {isEditingName ? (
               <View style={s.editFieldContainer}>
@@ -297,9 +270,35 @@ export default function AccountProfileScreen() {
                 </View>
               </View>
             ) : (
-              <Text selectable style={s.value}>
-                {session.user.name}
-              </Text>
+              <View style={s.nameRow}>
+                <Text selectable style={[s.value, s.nameValue]}>
+                  {session.user.name}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit profile name"
+                  onPress={startEditName}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    s.editButton,
+                    pressed && { opacity: 0.6 },
+                  ]}
+                >
+                  <Svg
+                    width={18}
+                    height={18}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.ink}
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    accessible={false}
+                  >
+                    <Path d="m16 3 5 5M4 20l4-1L21 6a2.1 2.1 0 0 0-3-3L5 16l-1 4Z" />
+                  </Svg>
+                </Pressable>
+              </View>
             )}
 
             <View style={s.divider} />
@@ -392,26 +391,23 @@ const createStyles = (c: ThemeColors) =>
       padding: 24,
       gap: 10,
     },
-    rowHeader: {
+    nameRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      gap: 16,
     },
+    nameValue: { flex: 1 },
     label: { fontFamily: f.medium, fontSize: 13, color: c.muted },
     value: { fontFamily: f.regular, fontSize: 18, color: c.ink },
     editButton: {
-      flexDirection: "row",
+      width: 44,
+      height: 44,
       alignItems: "center",
-      gap: 6,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      backgroundColor: c.peachLight,
-      borderRadius: 14,
-    },
-    editText: {
-      fontFamily: f.medium,
-      fontSize: 13,
-      color: c.ink,
+      justifyContent: "center",
+      backgroundColor: c.background,
+      borderRadius: 22,
+      flexShrink: 0,
     },
     editFieldContainer: {
       gap: 12,

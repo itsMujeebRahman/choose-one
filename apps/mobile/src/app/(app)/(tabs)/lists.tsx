@@ -130,17 +130,16 @@ export default function ListsScreen() {
             secondary
             onPress={() => void refetch()}
           />
+        ) : !lists.length ? (
+          <Text style={s.body}>No lists available</Text>
         ) : (
           <>
-            <Text style={s.name}>In progress</Text>
-            <View style={s.cards}>
-              {active.map(card)}
-              {!active.length && (
-                <Text style={s.body}>
-                  No active lists yet. Create one to start exploring.
-                </Text>
-              )}
-            </View>
+            {!!active.length && (
+              <>
+                <Text style={s.name}>In progress</Text>
+                <View style={s.cards}>{active.map(card)}</View>
+              </>
+            )}
             {!!completed.length && (
               <>
                 <Text style={s.name}>Completed</Text>

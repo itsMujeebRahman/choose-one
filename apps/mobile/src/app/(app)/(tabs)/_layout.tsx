@@ -11,7 +11,7 @@ import { useTheme } from "../../../theme/theme";
 export default function AppTabs() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const homeTarget = useRef<ComponentRef<typeof View> | null>(null);
   const listsTarget = useRef<ComponentRef<typeof View> | null>(null);
   const profileTarget = useRef<ComponentRef<typeof View> | null>(null);
@@ -48,19 +48,11 @@ export default function AppTabs() {
         tabBarButton: ({ style, children, ref, ...props }) => (
           <Pressable
             {...props}
+            android_ripple={{ color: "transparent" }}
             ref={ref as Ref<ComponentRef<typeof Pressable>>}
-            android_ripple={{
-              color: "rgba(255,255,255,0.5)",
-              borderless: false,
-            }}
-            style={({ pressed }) => [
+            style={[
               style,
               { borderRadius: 999, overflow: "hidden" },
-              pressed && {
-                backgroundColor: isDark
-                  ? "rgba(255,255,255,0.12)"
-                  : "rgba(255,255,255,0.75)",
-              },
             ]}
           >
             {children}
