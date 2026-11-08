@@ -145,8 +145,8 @@ export function useAppSession() {
 
   return {
     ...result,
-    // Keep the auth screen mounted while its browser session is running.
-    isPending: result.isPending && !isSigningIn,
+    // Route guards keep the loader visible until browser sign-in is verified.
+    isPending: result.isPending || isSigningIn,
     data: enhancedData,
   };
 }

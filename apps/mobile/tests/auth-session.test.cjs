@@ -22,7 +22,9 @@ function harness() {
   let signOutError = null;
   let network = async () => { throw new Error('Unexpected request'); };
   let signOutCount = 0;
+  let browserSignIn = async () => ({ error: null });
   const authClient = {
+    useSession: () => state,
     $store: { atoms: { session: { get: () => state, set: (value) => { state = value; events.push('session-clear'); } } } },
     getCookie: async () => state.data?.session.id,
     signOut: async () => {
@@ -32,7 +34,7 @@ function harness() {
       return { error: signOutError };
     },
     getSession: async () => { events.push('confirm'); return confirmation; },
-    signIn: { social: async () => { events.push('sign-in'); return { error: null }; } },
+    signIn: { social: async () => { events.push('sign-in'); return browserSignIn(); } },
   };
   const queryClient = {
     cancelQueries: async () => { events.push('queries-cancel'); },
@@ -55,10 +57,10 @@ function harness() {
   }
   const session = load('src/lib/session.ts', {
     'sonner-native': { toast: { success: () => { events.push('logout-toast'); } } },
-    react: { useSyncExternalStore: (_, get) => get() },
+    react: { useSyncExternalStore: (_, get) => get(), useMemo: (compute) => compute() },
     'react-native': { Platform: { OS: 'android' } },
     './auth-client': { authClient }, './query-client': { queryClient },
-    './guest-storage': { clearGuestName: () => guestCleanup() },
+    './guest-storage': { clearGuestName: () => guestCleanup(), getGuestName: () => null },
   });
   const api = load('src/services/api-client.ts', {
     '../lib/api-url': { apiUrl: 'https://example.com' },
@@ -70,6 +72,7 @@ function harness() {
     confirm: (value) => { confirmation = value; },
     signOutError: (error) => { signOutError = error; },
     network: (fn) => { network = fn; },
+    browser: (fn) => { browserSignIn = fn; },
     login: () => { state = { ...state, data: { session: { id: 'new' }, user: { id: 'new-user' } } }; },
   };
 }
@@ -139,4 +142,35 @@ test('backend sign-out failure does not expose the auth page', async () => {
   await assert.rejects(h.session.endSession(), /Backend unavailable/);
   assert.equal(h.session.useLogoutStatus(), 'failed');
   assert.ok(!h.events.includes('confirm'));
+});
+
+test('sign-in stays pending across browser return until the server confirms the session', async () => {
+  const h = harness();
+  await h.session.endSession();
+  const browser = deferred();
+  const verified = deferred();
+  h.browser(() => browser.promise);
+  h.confirm(verified.promise);
+  const signingIn = h.session.signInWithProvider('google');
+  assert.equal(h.session.useAppSession().isPending, true);
+  await new Promise(setImmediate);
+  browser.resolve({ error: null });
+  await new Promise(setImmediate);
+  assert.equal(h.session.useAppSession().isPending, true);
+  assert.equal(h.session.useAppSession().data, null);
+  verified.resolve({ data: { session: { id: 'fresh' }, user: { id: 'user', nameConfirmed: false } }, error: null });
+  await signingIn;
+  const current = h.session.useAppSession();
+  assert.equal(current.isPending, false);
+  assert.equal(current.data.session.id, 'fresh');
+  assert.equal(current.data.user.nameConfirmed, false);
+});
+
+test('a failed browser sign-in releases the loader without creating a session', async () => {
+  const h = harness();
+  await h.session.endSession();
+  h.browser(async () => ({ error: { message: 'Sign-in cancelled' } }));
+  await assert.rejects(h.session.signInWithProvider('google'), /cancelled/);
+  assert.equal(h.session.useAppSession().isPending, false);
+  assert.equal(h.session.useAppSession().data, null);
 });
