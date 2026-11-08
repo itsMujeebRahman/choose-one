@@ -4,6 +4,7 @@ import { expo } from "@better-auth/expo";
 import { anonymous } from "better-auth/plugins";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "../database/schema";
+import { preserveOAuthSession } from "./preserve-oauth-session";
 
 export type AuthBindings = {
   DATABASE_URL?: string;
@@ -98,6 +99,7 @@ export function createAuth(env: AuthBindings) {
         emailDomainName: "guest.chooseone.app",
         generateName: () => "Guest",
       }),
+      preserveOAuthSession(),
       expo(),
     ],
   });
