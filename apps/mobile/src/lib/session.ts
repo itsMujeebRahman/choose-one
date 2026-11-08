@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { AppState, Platform } from "react-native";
+import { AppState, Linking, Platform } from "react-native";
 import { toast } from "sonner-native";
 import { authClient } from "./auth-client";
 import { queryClient } from "./query-client";
@@ -17,6 +17,10 @@ const sessionRequests = new Map<AbortController, Promise<void>>();
 let signingIn = false;
 const signInListeners = new Set<() => void>();
 
+function traceSignIn(stage: string, details: Record<string, unknown> = {}) {
+  if (__DEV__) console.info("[auth-flow]", stage, details);
+}
+
 function setSigningIn(value: boolean) {
   signingIn = value;
   signInListeners.forEach((listener) => listener());
@@ -25,23 +29,39 @@ function setSigningIn(value: boolean) {
 export async function signInWithProvider(provider: "google" | "apple") {
   if (signingIn) return;
   setSigningIn(true);
+  let callbackReceived = false;
+  const callbackListener = Platform.OS !== "web" ? Linking.addEventListener("url", ({ url }) => {
+    if (!url.startsWith("chooseone:")) return;
+    const callback = new URL(url);
+    callbackReceived = true;
+    traceSignIn("callback-received", {
+      path: callback.pathname,
+      hasCookie: callback.searchParams.has("cookie"),
+      hasError: callback.searchParams.has("error"),
+    });
+  }) : null;
   try {
+    traceSignIn("started", { provider });
     if (logoutRequest) await logoutRequest;
     if (logoutStatus !== "idle") throw new Error("Finish signing out before signing in again.");
     // Finish/cancel the previous session refresh before opening a new auth flow.
     await authClient.$store.atoms.session.get().refetch({ query: { disableCookieCache: true } });
     const result = await authClient.signIn.social({
       provider,
-      callbackURL: Platform.OS === "web" ? "/" : "chooseone:///",
+      callbackURL: Platform.OS === "web" ? "/auth" : "chooseone:///auth",
       errorCallbackURL: Platform.OS === "web" ? "/auth" : "chooseone:///auth",
     });
+    traceSignIn("browser-returned", { callbackReceived, hasError: Boolean(result.error) });
     if (result.error) throw new Error(result.error.message ?? "Sign-in couldn’t start.");
     if (Platform.OS === "web") return;
+    const cookie = await authClient.getCookie();
+    traceSignIn("stored-credentials", { hasSessionCookie: Boolean(cookie?.includes("session_token=")) });
 
     // The browser return and native cookie/session refresh can settle separately.
     // Only finish after the server confirms the session; never assume success.
     for (let attempt = 0; attempt < 3; attempt++) {
       const restored = await authClient.getSession({ query: { disableCookieCache: true } });
+      traceSignIn("session-check", { attempt: attempt + 1, hasSession: Boolean(restored.data), hasError: Boolean(restored.error) });
       if (restored.error) throw new Error(restored.error.message ?? "Couldn’t restore your session.");
       if (restored.data) {
         const session = authClient.$store.atoms.session;
@@ -52,6 +72,7 @@ export async function signInWithProvider(provider: "google" | "apple") {
     }
     throw new Error("Sign-in returned without an active session. Please complete sign-in in the browser and try again.");
   } finally {
+    callbackListener?.remove();
     setSigningIn(false);
   }
 }

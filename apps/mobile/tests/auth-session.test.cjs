@@ -34,7 +34,11 @@ function harness() {
       return { error: signOutError };
     },
     getSession: async () => { events.push('confirm'); return confirmation; },
-    signIn: { social: async () => { events.push('sign-in'); return browserSignIn(); } },
+    signIn: { social: async (options) => {
+      assert.equal(options.callbackURL, 'chooseone:///auth');
+      events.push('sign-in');
+      return browserSignIn();
+    } },
   };
   const queryClient = {
     cancelQueries: async () => { events.push('queries-cancel'); },
@@ -46,7 +50,7 @@ function harness() {
     const compiled = ts.transpileModule(source, { compilerOptions: {
       module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
     } }).outputText;
-    vm.runInNewContext(compiled, { exports, AbortController, URL, setTimeout, clearTimeout,
+    vm.runInNewContext(compiled, { exports, AbortController, URL, setTimeout, clearTimeout, __DEV__: false,
       fetch: (...args) => network(...args),
       require(name) {
         if (!(name in modules)) throw new Error(`Unexpected module ${name}`);
@@ -58,7 +62,7 @@ function harness() {
   const session = load('src/lib/session.ts', {
     'sonner-native': { toast: { success: () => { events.push('logout-toast'); } } },
     react: { useSyncExternalStore: (_, get) => get(), useMemo: (compute) => compute() },
-    'react-native': { Platform: { OS: 'android' } },
+    'react-native': { Platform: { OS: 'android' }, Linking: { addEventListener: () => ({ remove() {} }) } },
     './auth-client': { authClient }, './query-client': { queryClient },
     './guest-storage': { clearGuestName: () => guestCleanup(), getGuestName: () => null },
   });
