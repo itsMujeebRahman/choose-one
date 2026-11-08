@@ -1,7 +1,9 @@
+import { useState } from "react";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
 import ProfileHeader from "../../../components/profile/profile-header";
 import ProfileSection from "../../../components/profile/profile-section";
+import ConfirmModal from "../../../components/confirm-modal";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   SafeAreaView,
@@ -15,6 +17,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [s, c] = useThemeStyles(createStyles);
   const { data: session } = useAppSession();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   if (!session) return null;
 
@@ -62,31 +65,40 @@ export default function ProfileScreen() {
           </View>
           <Pressable
             accessibilityRole="button"
-            onPress={signOut}
-
-            style={({ pressed }) => [
-              s.button,
-              pressed && { opacity: 0.65 },
-            ]}
+            onPress={() => setShowLogoutModal(true)}
+            style={({ pressed }) => [s.button, pressed && { opacity: 0.65 }]}
           >
             <View style={s.logoutContent}>
-                <Svg
-                  width={20}
-                  height={20}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={c.ink}
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  accessible={false}
-                >
-                  <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9" />
-                </Svg>
-                <Text style={s.buttonText}>Leave guest mode</Text>
-              </View>
+              <Svg
+                width={20}
+                height={20}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={c.ink}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                accessible={false}
+              >
+                <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9" />
+              </Svg>
+              <Text style={s.buttonText}>Leave guest mode</Text>
+            </View>
           </Pressable>
         </ScrollView>
+
+        <ConfirmModal
+          visible={showLogoutModal}
+          heading="Leave guest mode"
+          bodyText="Leaving guest mode will reset your temporary guest session on this device. Are you sure?"
+          confirmText="Leave"
+          confirmColor={c.error}
+          onConfirm={() => {
+            setShowLogoutModal(false);
+            signOut();
+          }}
+          onCancel={() => setShowLogoutModal(false)}
+        />
       </SafeAreaView>
     );
   }
@@ -121,31 +133,40 @@ export default function ProfileScreen() {
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={signOut}
-
-          style={({ pressed }) => [
-            s.button,
-            pressed && { opacity: 0.65 },
-          ]}
+          onPress={() => setShowLogoutModal(true)}
+          style={({ pressed }) => [s.button, pressed && { opacity: 0.65 }]}
         >
           <View style={s.logoutContent}>
-              <Svg
-                width={20}
-                height={20}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={c.ink}
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                accessible={false}
-              >
-                <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9" />
-              </Svg>
-              <Text style={s.buttonText}>Log out</Text>
-            </View>
+            <Svg
+              width={20}
+              height={20}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={c.ink}
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              accessible={false}
+            >
+              <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5M21 12H9" />
+            </Svg>
+            <Text style={s.buttonText}>Log out</Text>
+          </View>
         </Pressable>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showLogoutModal}
+        heading="Log out"
+        bodyText="Are you sure you want to log out of your account?"
+        confirmText="Log out"
+        confirmColor={c.error}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          signOut();
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </SafeAreaView>
   );
 }

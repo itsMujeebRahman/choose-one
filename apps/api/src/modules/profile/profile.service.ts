@@ -7,7 +7,6 @@ export async function getCurrentProfile(
   headers: Headers,
   _request?: Request,
 ) {
-
   if (!env.BETTER_AUTH_SECRET || !apiUrl(env)) return null;
   const session = await createAuth(env).api.getSession({ headers });
   return session?.user ?? null;
@@ -41,7 +40,6 @@ export async function updateUserProfile(
   if (updates.image !== undefined) {
     updateFields.image = updates.image;
   }
-
 
   const [updated] = await db
     .update(user)

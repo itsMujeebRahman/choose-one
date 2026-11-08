@@ -65,9 +65,13 @@ function RootLayoutContent() {
         ) : logoutStatus === "failed" ? (
           <SessionStatus
             message="Couldn’t finish signing out. Please try again."
-            retry={() => { void endSession().catch(() => {}); }}
+            retry={() => {
+              void endSession().catch(() => {});
+            }}
           />
-        ) : <Slot />}
+        ) : (
+          <Slot />
+        )}
         <Toaster
           position="top-center"
           theme={isDark ? "dark" : "light"}

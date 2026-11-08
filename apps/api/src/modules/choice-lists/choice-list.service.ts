@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { and, desc, eq } from "drizzle-orm";
-import { choiceList, choiceListOption, user } from "../../database";
+import { choiceList, choiceListOption, choiceListRound } from "../../database";
 
 export class ListError extends Error {
   constructor(
@@ -15,7 +15,6 @@ export async function createList(
   url: string,
   owner: string,
   input: { id?: string; title: string; options: string[] },
-  preview: boolean,
 ) {
   const db = drizzle(url);
   if (input.id) {
@@ -40,18 +39,6 @@ export async function createList(
         );
       return input.id;
     }
-  }
-
-  if (preview) {
-    await db
-      .insert(user)
-      .values({
-        id: owner,
-        name: "Max",
-        email: `${owner}@preview.invalid`,
-        nameConfirmed: true,
-      })
-      .onConflictDoNothing();
   }
 
   const [createdList] = await db
@@ -83,6 +70,7 @@ export async function getLists(url: string, owner: string) {
       id: choiceList.id,
       title: choiceList.title,
       pickCount: choiceList.pickCount,
+      roundNumber: choiceList.roundNumber,
       optionCount: choiceList.optionCount,
       createdAt: choiceList.createdAt,
       updatedAt: choiceList.updatedAt,
@@ -113,13 +101,19 @@ export async function getList(url: string, owner: string, id: string) {
     .from(choiceListOption)
     .where(eq(choiceListOption.listId, id))
     .orderBy(choiceListOption.sortOrder);
-  return { ...list, options };
+  const rounds = await db
+    .select()
+    .from(choiceListRound)
+    .where(eq(choiceListRound.listId, id))
+    .orderBy(desc(choiceListRound.roundNumber));
+  return { ...list, options, rounds };
 }
 export async function pickFromList(
   url: string,
   owner: string,
   id: string,
   requestId?: string,
+  roundNumber = 1,
 ) {
   const effectiveRequestId = requestId || crypto.randomUUID();
   const sql = neon(url);
@@ -132,10 +126,10 @@ export async function pickFromList(
           sql`WITH existing AS (
           SELECT o.id, o.label, o.selected_order FROM choice_list_option o
           JOIN choice_list l ON l.id=o.list_id
-          WHERE l.id=${id} AND l.user_id=${owner} AND o.pick_request_id=${effectiveRequestId}
+          WHERE l.id=${id} AND l.user_id=${owner} AND l.round_number=${roundNumber} AND o.pick_request_id=${effectiveRequestId}
         ), advanced AS (
-          UPDATE choice_list SET pick_count=pick_count+1, updated_at=now()
-          WHERE id=${id} AND user_id=${owner} AND pick_count<option_count AND NOT EXISTS (SELECT 1 FROM existing)
+          UPDATE choice_list SET pick_count=pick_count+1, revision=revision+1, updated_at=now()
+          WHERE id=${id} AND user_id=${owner} AND round_number=${roundNumber} AND pick_count<option_count AND NOT EXISTS (SELECT 1 FROM existing)
           RETURNING id, pick_count
         ), candidate AS MATERIALIZED (
           SELECT o.id, a.pick_count FROM advanced a CROSS JOIN LATERAL (
@@ -152,9 +146,11 @@ export async function pickFromList(
       if (!rows.length) {
         const list = await getList(url, owner, id);
         throw new ListError(
-          list.pickCount >= list.optionCount
-            ? "You’ve tried every option in this list."
-            : "Please try your pick again.",
+          list.roundNumber !== roundNumber
+            ? "This round has changed. Refresh the list before picking again."
+            : list.pickCount >= list.optionCount
+              ? "You’ve tried every option in this list."
+              : "Please try your pick again.",
           409,
         );
       }
@@ -166,4 +162,32 @@ export async function pickFromList(
     }
   }
   throw new ListError("Please try your pick again.", 409);
+}
+
+export async function manageList(
+  url: string,
+  owner: string,
+  id: string,
+  action: "rename" | "options" | "restart" | "delete",
+  input: Record<string, unknown>,
+) {
+  const sql = neon(url);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const [rows] = await sql.transaction(
+        [
+          sql`SELECT manage_choice_list(${id}::uuid, ${owner}, ${action}, ${JSON.stringify(input)}::jsonb) AS result`,
+        ],
+        { isolationLevel: "Serializable" },
+      );
+      return rows[0].result as { id: string };
+    } catch (error) {
+      const e = error as { code?: string; message: string; detail?: string };
+      if (e.code === "40001" && attempt < 3) continue;
+      if (e.code === "P0001")
+        throw new ListError(e.message, Number(e.detail) as 400 | 404 | 409);
+      throw error;
+    }
+  }
+  throw new ListError("This list is busy. Please try again.", 409);
 }

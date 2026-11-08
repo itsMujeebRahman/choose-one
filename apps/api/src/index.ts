@@ -10,7 +10,7 @@ const app = new Hono<{ Bindings: AuthBindings }>();
 app.use("*", async (c, next) =>
   cors({
     origin: allowedOrigins(c.env),
-    allowMethods: ["GET", "POST", "PATCH", "PUT", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: [
       "Content-Type",
       "Authorization",
@@ -27,11 +27,7 @@ app.route("/api", problemController);
 app.route("/api", profileController);
 app.route("/api/choice-lists", choiceListController);
 app.on(["GET", "POST"], "/api/auth/*", async (c) => {
-  if (
-    !c.env.DATABASE_URL ||
-    !c.env.BETTER_AUTH_SECRET ||
-    !apiUrl(c.env)
-  ) {
+  if (!c.env.DATABASE_URL || !c.env.BETTER_AUTH_SECRET || !apiUrl(c.env)) {
     return c.json({ message: "Authentication is not configured." }, 503);
   }
   if (c.req.path === "/api/auth/sign-in/social") {

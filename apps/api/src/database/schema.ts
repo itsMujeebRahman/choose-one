@@ -186,6 +186,8 @@ export const choiceList = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 100 }).notNull(),
+    roundNumber: integer("round_number").notNull().default(1),
+    revision: integer("revision").notNull().default(0),
     pickCount: integer("pick_count").notNull().default(0),
     optionCount: integer("option_count").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -232,6 +234,34 @@ export const choiceListOption = pgTable(
     check(
       "choice_list_option_selection_valid",
       sql`(${t.selectedOrder} IS NULL AND ${t.selectedAt} IS NULL AND ${t.pickRequestId} IS NULL) OR (${t.selectedOrder} IS NOT NULL AND ${t.selectedOrder} between 1 and 20 AND ${t.selectedAt} IS NOT NULL AND ${t.pickRequestId} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export type RoundPick = {
+  id: string;
+  label: string;
+  selectedOrder: number;
+  selectedAt: string;
+};
+export const choiceListRound = pgTable(
+  "choice_list_round",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => choiceList.id, { onDelete: "cascade" }),
+    roundNumber: integer("round_number").notNull(),
+    title: varchar("title", { length: 100 }).notNull(),
+    picks: jsonb("picks").$type<RoundPick[]>().notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    unique("choice_list_round_number_unique").on(t.listId, t.roundNumber),
+    check("choice_list_round_number_valid", sql`${t.roundNumber} > 0`),
+    check(
+      "choice_list_round_picks_array",
+      sql`jsonb_typeof(${t.picks}) = 'array'`,
     ),
   ],
 );

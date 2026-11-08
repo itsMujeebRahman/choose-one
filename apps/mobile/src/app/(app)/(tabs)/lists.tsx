@@ -50,14 +50,16 @@ export default function ListsScreen() {
   const completed = lists.filter((l) => l.pickCount === l.optionCount);
   function card(list: ChoiceList) {
     const remaining = list.optionCount - list.pickCount;
+    const roundPrefix =
+      (list.roundNumber ?? 1) > 1 ? `Round ${list.roundNumber} • ` : "";
     return (
       <ChoiceCard
         key={list.id}
         title={list.title}
         meta={
           remaining === 0
-            ? `All ${list.optionCount} chosen - complete`
-            : `${list.pickCount} of ${list.optionCount} chosen - ${remaining} left`
+            ? `${roundPrefix}All ${list.optionCount} chosen - complete`
+            : `${roundPrefix}${list.pickCount} of ${list.optionCount} chosen - ${remaining} left`
         }
         date={timeAgo(list.updatedAt)}
         result={list.latestResult}

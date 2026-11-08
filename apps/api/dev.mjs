@@ -13,9 +13,16 @@ const apiUrl = readApiUrl(process.env, "api");
 const worker = await startWorker({
   config: resolve(root, "apps/api/wrangler.jsonc"),
   bindings: Object.fromEntries(
-    ["API_URL", "DATABASE_URL",
-      "DATABASE_URL_UNPOOLED", "BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID",
-      "GOOGLE_CLIENT_SECRET", "APPLE_CLIENT_ID", "APPLE_CLIENT_SECRET"]
+    [
+      "API_URL",
+      "DATABASE_URL",
+      "DATABASE_URL_UNPOOLED",
+      "BETTER_AUTH_SECRET",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "APPLE_CLIENT_ID",
+      "APPLE_CLIENT_SECRET",
+    ]
       .filter((name) => process.env[name] !== undefined)
       .map((name) => [name, { type: "secret_text", value: process.env[name] }]),
   ),
@@ -26,7 +33,9 @@ const worker = await startWorker({
   },
 });
 await worker.ready;
-console.log(`Local API listening on port ${apiUrl.port}; configured URL: ${apiUrl.value}`);
+console.log(
+  `Local API listening on port ${apiUrl.port}; configured URL: ${apiUrl.value}`,
+);
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.once(signal, async () => {
     await worker.dispose();

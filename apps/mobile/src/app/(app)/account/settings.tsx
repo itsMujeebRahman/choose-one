@@ -56,12 +56,32 @@ export default function SettingsScreen() {
             style={({ pressed }) => [s.row, pressed && { opacity: 0.65 }]}
           >
             <View style={s.icon}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.ink} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" accessible={false}>
+              <Svg
+                width={20}
+                height={20}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={c.ink}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                accessible={false}
+              >
                 <Path d={item.path} />
               </Svg>
             </View>
             <Text style={s.label}>{item.title}</Text>
-            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={c.muted} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" accessible={false}>
+            <Svg
+              width={18}
+              height={18}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={c.muted}
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              accessible={false}
+            >
               <Path d="m9 5 7 7-7 7" />
             </Svg>
           </Pressable>

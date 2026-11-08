@@ -60,6 +60,7 @@ export default function NewChoiceList() {
         title: title.trim(),
         options: values,
       });
+      toast.success("Choice list created.");
       router.replace({
         pathname: "/choice-lists/[id]",
         params: { id: list.id },

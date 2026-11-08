@@ -22,6 +22,11 @@ export default function AppLayout() {
     );
   if (!session) return <Redirect href="/auth" />;
   if (!session.user.nameConfirmed && pathname !== "/complete-profile")
-    return <><Redirect href="/complete-profile" /><SessionStatus /></>;
+    return (
+      <>
+        <Redirect href="/complete-profile" />
+        <SessionStatus />
+      </>
+    );
   return <Stack screenOptions={{ headerShown: false }} />;
 }

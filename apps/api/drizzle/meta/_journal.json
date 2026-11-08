@@ -78,6 +78,27 @@
       "when": 1794081483795,
       "tag": "0010_graceful_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794150826782,
+      "tag": "0011_choice_list_rounds",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794150835067,
+      "tag": "0012_choice_list_management",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794150889765,
+      "tag": "0013_choice_list_revision",
+      "breakpoints": true
     }
   ]
 }

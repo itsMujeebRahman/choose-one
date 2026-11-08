@@ -108,7 +108,11 @@ export default function AuthScreen() {
     try {
       await signInWithProvider(provider);
     } catch (error) {
-      reportError(error instanceof Error ? error.message : "We couldn’t connect to sign-in. Please try again.");
+      reportError(
+        error instanceof Error
+          ? error.message
+          : "We couldn’t connect to sign-in. Please try again.",
+      );
     } finally {
       setBusy(null);
     }

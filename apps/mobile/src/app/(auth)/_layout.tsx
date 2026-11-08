@@ -11,11 +11,14 @@ export default function AuthLayout() {
     "session-error",
   );
   if (isPending) return <SessionStatus />;
-  if (session && !session.user.isAnonymous) return (
-    <>
-      <Redirect href={session.user.nameConfirmed ? "/" : "/complete-profile"} />
-      <SessionStatus />
-    </>
-  );
+  if (session && !session.user.isAnonymous)
+    return (
+      <>
+        <Redirect
+          href={session.user.nameConfirmed ? "/" : "/complete-profile"}
+        />
+        <SessionStatus />
+      </>
+    );
   return <Slot />;
 }

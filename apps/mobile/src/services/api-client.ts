@@ -21,18 +21,24 @@ export async function apiClient<T>(
   if (options.signal?.aborted) abort();
   const timeout = setTimeout(abort, 15000);
   // Settle locally even if a transport ignores abort; its late result is discarded.
-  const waitForRequest = <R>(work: Promise<R>): Promise<R> => new Promise((resolve, reject) => {
-    const cancelled = () => {
-      const error = new Error("Request cancelled.");
-      error.name = "AbortError";
-      reject(error);
-    };
-    signal.addEventListener("abort", cancelled, { once: true });
-    if (signal.aborted) cancelled();
-    work.then(resolve, reject).finally(() => signal.removeEventListener("abort", cancelled));
-  });
+  const waitForRequest = <R>(work: Promise<R>): Promise<R> =>
+    new Promise((resolve, reject) => {
+      const cancelled = () => {
+        const error = new Error("Request cancelled.");
+        error.name = "AbortError";
+        reject(error);
+      };
+      signal.addEventListener("abort", cancelled, { once: true });
+      if (signal.aborted) cancelled();
+      work
+        .then(resolve, reject)
+        .finally(() => signal.removeEventListener("abort", cancelled));
+    });
   const checkSession = () => {
-    if (!request.isCurrent()) throw new Error("Request cancelled because the session changed or the request was aborted.");
+    if (!request.isCurrent())
+      throw new Error(
+        "Request cancelled because the session changed or the request was aborted.",
+      );
   };
   try {
     const base = apiUrl;
@@ -48,18 +54,25 @@ export async function apiClient<T>(
     }
 
     checkSession();
-    const url = new URL(endpoint.startsWith("/") || /^https?:/i.test(endpoint) ? endpoint : `/${endpoint}`, base);
+    const url = new URL(
+      endpoint.startsWith("/") || /^https?:/i.test(endpoint)
+        ? endpoint
+        : `/${endpoint}`,
+      base,
+    );
     if (url.origin !== new URL(base).origin) {
       throw new Error("API requests must use the configured API_URL.");
     }
 
-    const response = await waitForRequest(fetch(url.href, {
-      method: options.method ?? (options.body ? "POST" : "GET"),
-      headers,
-      credentials: Platform.OS === "web" ? "include" : "omit",
-      body: options.body ? JSON.stringify(options.body) : undefined,
-      signal,
-    }));
+    const response = await waitForRequest(
+      fetch(url.href, {
+        method: options.method ?? (options.body ? "POST" : "GET"),
+        headers,
+        credentials: Platform.OS === "web" ? "include" : "omit",
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        signal,
+      }),
+    );
 
     const data = await waitForRequest(response.json()).catch(() => null);
     checkSession();

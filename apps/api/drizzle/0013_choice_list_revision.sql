@@ -1,0 +1,1 @@
+ALTER TABLE "choice_list" ADD COLUMN IF NOT EXISTS "revision" integer DEFAULT 0 NOT NULL;

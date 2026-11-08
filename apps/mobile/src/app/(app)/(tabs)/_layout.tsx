@@ -50,10 +50,7 @@ export default function AppTabs() {
             {...props}
             android_ripple={{ color: "transparent" }}
             ref={ref as Ref<ComponentRef<typeof Pressable>>}
-            style={[
-              style,
-              { borderRadius: 999, overflow: "hidden" },
-            ]}
+            style={[style, { borderRadius: 999, overflow: "hidden" }]}
           >
             {children}
           </Pressable>

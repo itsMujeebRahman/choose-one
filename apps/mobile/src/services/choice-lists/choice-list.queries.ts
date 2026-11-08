@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createChoiceList,
+  deleteChoiceList,
   getChoiceList,
   getChoiceLists,
   pickFromChoiceList,
+  renameChoiceList,
+  restartChoiceListRound,
+  updateChoiceListOptions,
   type ChoiceList,
   type CreateListInput,
   type ListDetail,
@@ -42,16 +46,89 @@ export function useCreateChoiceListMutation() {
 
 export function usePickFromChoiceListMutation() {
   const queryClient = useQueryClient();
-  return useMutation<PickResult, Error, { listId: string; requestId?: string }>(
-    {
-      mutationFn: ({ listId, requestId }) =>
-        pickFromChoiceList(listId, requestId),
-      onSuccess: (_, variables) => {
-        queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
-        queryClient.invalidateQueries({
-          queryKey: choiceListKeys.detail(variables.listId),
-        });
-      },
+  return useMutation<
+    PickResult,
+    Error,
+    { listId: string; requestId?: string; roundNumber?: number }
+  >({
+    mutationFn: ({ listId, requestId, roundNumber }) =>
+      pickFromChoiceList(listId, requestId, roundNumber),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: choiceListKeys.detail(variables.listId),
+      });
     },
-  );
+  });
+}
+
+export function useRenameChoiceListMutation() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { id: string },
+    Error,
+    { id: string; title: string; revision: number }
+  >({
+    mutationFn: ({ id, title, revision }) =>
+      renameChoiceList(id, title, revision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: choiceListKeys.detail(variables.id),
+      });
+    },
+  });
+}
+
+export function useUpdateChoiceListOptionsMutation() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { id: string },
+    Error,
+    {
+      id: string;
+      options: { id?: string; label: string }[];
+      revision: number;
+    }
+  >({
+    mutationFn: ({ id, options, revision }) =>
+      updateChoiceListOptions(id, options, revision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: choiceListKeys.detail(variables.id),
+      });
+    },
+  });
+}
+
+export function useRestartChoiceListRoundMutation() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { id: string },
+    Error,
+    { id: string; roundNumber: number; revision: number }
+  >({
+    mutationFn: ({ id, roundNumber, revision }) =>
+      restartChoiceListRound(id, roundNumber, revision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: choiceListKeys.detail(variables.id),
+      });
+    },
+  });
+}
+
+export function useDeleteChoiceListMutation() {
+  const queryClient = useQueryClient();
+  return useMutation<{ id: string }, Error, { id: string; revision: number }>({
+    mutationFn: ({ id, revision }) => deleteChoiceList(id, revision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+      queryClient.removeQueries({
+        queryKey: choiceListKeys.detail(variables.id),
+      });
+    },
+  });
 }

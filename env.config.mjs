@@ -23,9 +23,14 @@ export function readApiUrl(env, workspace) {
   try {
     url = new URL(env.API_URL);
   } catch {
-    throw new Error(`Set API_URL to a full URL in apps/${workspace}/.env.local.`);
+    throw new Error(
+      `Set API_URL to a full URL in apps/${workspace}/.env.local.`,
+    );
   }
   if (!["http:", "https:"].includes(url.protocol))
     throw new Error("API_URL must be an HTTP or HTTPS URL.");
-  return { value: env.API_URL, port: Number(url.port || (url.protocol === "https:" ? 443 : 80)) };
+  return {
+    value: env.API_URL,
+    port: Number(url.port || (url.protocol === "https:" ? 443 : 80)),
+  };
 }
