@@ -12,6 +12,8 @@ export type AuthBindings = {
   CORS_ORIGINS?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  GOOGLE_AUTH_URL?: string;
+  GOOGLE_REDIRECT_URI?: string;
   APPLE_CLIENT_ID?: string;
   APPLE_CLIENT_SECRET?: string;
   LOCAL_PREVIEW_USER_ID?: string;
@@ -28,6 +30,12 @@ export function createAuth(env: AuthBindings) {
   if (!env.DATABASE_URL || !env.BETTER_AUTH_SECRET || !env.BETTER_AUTH_URL) {
     throw new Error("Authentication environment is not configured.");
   }
+  const googleRedirectURI =
+    env.GOOGLE_REDIRECT_URI ||
+    (env.GOOGLE_AUTH_URL
+      ? `${env.GOOGLE_AUTH_URL.replace(/\/+$/, "")}/api/auth/callback/google`
+      : undefined);
+
   return betterAuth({
     appName: "Choose One",
     baseURL: env.BETTER_AUTH_URL,
@@ -44,6 +52,7 @@ export function createAuth(env: AuthBindings) {
             google: {
               clientId: env.GOOGLE_CLIENT_ID,
               clientSecret: env.GOOGLE_CLIENT_SECRET,
+              ...(googleRedirectURI ? { redirectURI: googleRedirectURI } : {}),
             },
           }
         : {}),
@@ -70,6 +79,7 @@ export function createAuth(env: AuthBindings) {
       "chooseone://",
       "chooseone://*",
       "https://appleid.apple.com",
+      ...(env.GOOGLE_AUTH_URL ? [env.GOOGLE_AUTH_URL] : []),
       ...allowedOrigins(env),
     ],
     plugins: [

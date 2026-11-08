@@ -15,12 +15,6 @@ export function useAppSession() {
     () => null,
   );
 
-  useEffect(() => {
-    if (result.data?.user?.isAnonymous && !guestName) {
-      void endSession();
-    }
-  }, [result.data?.user?.isAnonymous, guestName]);
-
   const { refetch } = result;
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import { stdin as input, stdout as output } from "node:process";
 import { spawnSync } from "node:child_process";
 import { neon } from "@neondatabase/serverless";
 
-import { readPorts } from "../../../env.config.mjs";
+import { expoDefaultPort } from "../../../env.config.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const apiDir = resolve(__dirname, "..");
@@ -188,9 +188,13 @@ function clearLocalStorageAndCaches() {
 
     for (const b of browsers) {
       try {
-        spawnSync("osascript", ["-e", b.script(`http://localhost:${readPorts().mobile}`)], {
-          stdio: "ignore",
-        });
+        spawnSync(
+          "osascript",
+          ["-e", b.script(`http://localhost:${expoDefaultPort}`)],
+          {
+            stdio: "ignore",
+          },
+        );
       } catch {
         // Ignore AppleScript execution failures
       }

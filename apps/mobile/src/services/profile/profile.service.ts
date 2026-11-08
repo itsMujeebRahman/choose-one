@@ -24,7 +24,6 @@ export async function getProfile(): Promise<UserProfile> {
 export async function updateProfile(
   input: UpdateProfileInput,
 ): Promise<UserProfile> {
-
   const result = await apiClient<{ user: UserProfile }>("/api/profile", {
     method: "PATCH",
     body: input,

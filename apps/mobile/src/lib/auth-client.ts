@@ -9,7 +9,7 @@ import { Platform } from "react-native";
 
 const baseURL = process.env.EXPO_PUBLIC_API_URL;
 if (!baseURL)
-  throw new Error("Set EXPO_PUBLIC_API_URL in the mobile environment.");
+  throw new Error("Configure production and its API URL in apps/mobile/.env.local, then start through npm.");
 export const authClient = createAuthClient({
   baseURL,
   plugins: [

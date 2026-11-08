@@ -9,36 +9,34 @@ export function readEnv(directory) {
   const env = {};
   for (const name of [".env", ".env.local"]) {
     const path = resolve(directory, name);
-    if (existsSync(path)) Object.assign(env, parseEnv(readFileSync(path, "utf8")));
+    if (existsSync(path))
+      Object.assign(env, parseEnv(readFileSync(path, "utf8")));
   }
   return env;
 }
 
-export function readPorts() {
-  const apiEnv = { ...readEnv(resolve(root, "apps/api")), ...process.env };
-  const mobileEnv = { ...readEnv(resolve(root, "apps/mobile")), ...process.env };
-  const url = new URL(apiEnv.DEVELOPMENT_API_URL);
+// Expo's standard local frontend port; no separate env setting is required.
+export const expoDefaultPort = 8081;
+
+export function selectedApiUrl(env, workspace) {
+  const name = selectUrlName(env, workspace);
+  let url;
+  try {
+    url = new URL(env[name]);
+  } catch {
+    throw new Error(`Set ${name} to a full URL in apps/${workspace}/.env.local.`);
+  }
   if (!["http:", "https:"].includes(url.protocol))
-    throw new Error("DEVELOPMENT_API_URL must be an HTTP or HTTPS URL.");
-  const ports = {
-    api: url.port || (url.protocol === "https:" ? "443" : "80"),
-    mobile: mobileEnv.mobile,
-  };
-  if (!ports.mobile || !/^\d+$/.test(ports.mobile) || Number(ports.mobile) < 1 || Number(ports.mobile) > 65535)
-    throw new Error("Set mobile to a valid port in apps/mobile/.env.local.");
-  ports.mobile = String(Number(ports.mobile));
-  if (ports.api === ports.mobile) throw new Error("API and mobile must use different ports.");
-  return ports;
+    throw new Error(`${name} must be an HTTP or HTTPS URL.`);
+  return { value: env[name], port: Number(url.port || (url.protocol === "https:" ? 443 : 80)) };
 }
 
-export function selectUrlName(source) {
-  const { production } = parseEnv(source);
+export function selectUrlName(env, workspace) {
+  const { production } = env;
   if (production !== "true" && production !== "false") {
-    throw new Error("Set production=true or production=false in the root dev.variable file.");
+    throw new Error(
+      `Set production=true or production=false in apps/${workspace}/.env.local.`,
+    );
   }
   return production === "true" ? "PRODUCTION_API_URL" : "DEVELOPMENT_API_URL";
-}
-
-export function readUrlName() {
-  return selectUrlName(readFileSync(new URL("./dev.variable", import.meta.url), "utf8"));
 }

@@ -42,14 +42,16 @@ export function useCreateChoiceListMutation() {
 
 export function usePickFromChoiceListMutation() {
   const queryClient = useQueryClient();
-  return useMutation<PickResult, Error, { listId: string; requestId?: string }>({
-    mutationFn: ({ listId, requestId }) =>
-      pickFromChoiceList(listId, requestId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
-      queryClient.invalidateQueries({
-        queryKey: choiceListKeys.detail(variables.listId),
-      });
+  return useMutation<PickResult, Error, { listId: string; requestId?: string }>(
+    {
+      mutationFn: ({ listId, requestId }) =>
+        pickFromChoiceList(listId, requestId),
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({ queryKey: choiceListKeys.all });
+        queryClient.invalidateQueries({
+          queryKey: choiceListKeys.detail(variables.listId),
+        });
+      },
     },
-  });
+  );
 }
