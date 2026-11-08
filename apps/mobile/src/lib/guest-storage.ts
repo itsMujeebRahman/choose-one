@@ -55,7 +55,7 @@ export function setGuestName(name: string) {
   notify();
 }
 
-export function clearGuestName() {
+export async function clearGuestName() {
   memory.delete(GUEST_NAME_KEY);
   try {
     if (Platform.OS === "web") {
@@ -63,12 +63,11 @@ export function clearGuestName() {
         window.localStorage.removeItem(GUEST_NAME_KEY);
       }
     } else {
-      SecureStore.deleteItemAsync(GUEST_NAME_KEY);
+      await SecureStore.deleteItemAsync(GUEST_NAME_KEY);
     }
-  } catch {
-    /* fallback to memory */
+  } finally {
+    notify();
   }
-  notify();
 }
 
 export function subscribeGuestName(listener: () => void) {

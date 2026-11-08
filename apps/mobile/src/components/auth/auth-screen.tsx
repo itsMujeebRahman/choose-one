@@ -1,4 +1,4 @@
-import { useAppSession } from "../../lib/session";
+import { signInWithProvider, useAppSession } from "../../lib/session";
 import { useErrorToast } from "../../hooks/use-error-toast";
 import SocialIcon from "./social-icon";
 import { toast } from "sonner-native";
@@ -106,27 +106,9 @@ export default function AuthScreen() {
     }
     setBusy(provider);
     try {
-      const result = await authClient.signIn.social({
-        provider,
-        callbackURL: Platform.OS === "web" ? "/" : "chooseone:///",
-        errorCallbackURL: Platform.OS === "web" ? "/auth" : "chooseone:///auth",
-      });
-      if (result.error)
-        reportError(
-          result.error.message ?? "Sign-in couldn’t start. Please try again.",
-        );
-      else if (Platform.OS !== "web") {
-        const restored = await authClient.getSession({
-          query: { disableCookieCache: true },
-        });
-        if (restored.error)
-          reportError("Couldn’t restore your session. Please try again.");
-        else if (!restored.data)
-          reportError("Sign-in wasn’t completed. Try again when you’re ready.");
-        await refetch();
-      }
-    } catch {
-      reportError("We couldn’t connect to sign-in. Please try again.");
+      await signInWithProvider(provider);
+    } catch (error) {
+      reportError(error instanceof Error ? error.message : "We couldn’t connect to sign-in. Please try again.");
     } finally {
       setBusy(null);
     }

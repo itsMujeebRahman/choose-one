@@ -1,3 +1,5 @@
+import { endSession, useLogoutStatus, useSessionRefresh } from "../lib/session";
+import SessionStatus from "../components/feedback/session-status";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../lib/query-client";
 import { useErrorToast } from "../hooks/use-error-toast";
@@ -27,6 +29,8 @@ export default function RootLayout() {
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
+  const logoutStatus = useLogoutStatus();
+  useSessionRefresh();
   const [loaded, error] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
@@ -56,7 +60,14 @@ function RootLayoutContent() {
     >
       <SafeAreaProvider>
         <StatusBar style={isDark ? "light" : "dark"} />
-        <Slot />
+        {logoutStatus === "pending" ? (
+          <SessionStatus message="Logging you out…" />
+        ) : logoutStatus === "failed" ? (
+          <SessionStatus
+            message="Couldn’t finish signing out. Please try again."
+            retry={() => { void endSession().catch(() => {}); }}
+          />
+        ) : <Slot />}
         <Toaster
           position="top-center"
           theme={isDark ? "dark" : "light"}

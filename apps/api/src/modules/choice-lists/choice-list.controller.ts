@@ -1,6 +1,5 @@
 import { Hono, type Context } from "hono";
 import { createAuth, type AuthBindings } from "../../auth";
-import { localPreviewOwner } from "../../lib/preview-owner";
 import {
   createList,
   getList,
@@ -108,15 +107,12 @@ choiceListController.use("*", async (c, next) => {
   c.header("Cache-Control", "no-store");
   if (!c.env.DATABASE_URL)
     return c.json({ message: "Database is not configured." }, 503);
-  const preview = localPreviewOwner(c.env, c.req.raw);
-  const session = preview
-    ? null
-    : await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });
-  const owner = preview ?? session?.user.id;
+  const session = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });
+  const owner = session?.user.id;
   if (!owner)
     return c.json({ message: "Please sign in to use your lists." }, 401);
   c.set("owner", owner);
-  c.set("preview", !!preview);
+  c.set("preview", false);
   c.set(
     "isAnonymous",
     Boolean(

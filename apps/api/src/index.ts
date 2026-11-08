@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { checkDatabase } from "./database";
-import { allowedOrigins, createAuth, type AuthBindings } from "./auth";
+import { allowedOrigins, apiUrl, createAuth, type AuthBindings } from "./auth";
 import { problemController } from "./modules/problems/problem.controller";
 import { profileController } from "./modules/profile/profile.controller";
 import { choiceListController } from "./modules/choice-lists/choice-list.controller";
@@ -16,7 +16,6 @@ app.use("*", async (c, next) =>
       "Authorization",
       "expo-origin",
       "x-skip-oauth-proxy",
-      "x-auth-preview",
     ],
     credentials: true,
   })(c, next),
@@ -31,7 +30,7 @@ app.on(["GET", "POST"], "/api/auth/*", async (c) => {
   if (
     !c.env.DATABASE_URL ||
     !c.env.BETTER_AUTH_SECRET ||
-    !c.env.BETTER_AUTH_URL
+    !apiUrl(c.env)
   ) {
     return c.json({ message: "Authentication is not configured." }, 503);
   }

@@ -1,13 +1,12 @@
-// Run against an isolated test API with AUTH_TEST_URL and AUTH_TEST_ORIGIN set.
+// Run only against an isolated test API; optionally pass its URL as the first argument.
 import assert from "node:assert/strict";
-const base = process.env.AUTH_TEST_URL;
-const origin = process.env.AUTH_TEST_ORIGIN;
-const provider = process.env.AUTH_TEST_PROVIDER ?? "google";
+import { readEnv, selectedApiUrl, root } from "../../../env.config.mjs";
+import { resolve } from "node:path";
+const env = { ...readEnv(resolve(root, "apps/api")), ...process.env };
+const base = process.argv[2] || selectedApiUrl(env, "api").value;
+const origin = "chooseone://";
+const provider = process.argv[3] || "google";
 assert.ok(["google", "apple"].includes(provider));
-if (!base || !origin)
-  throw new Error(
-    "Set AUTH_TEST_URL and AUTH_TEST_ORIGIN for an isolated test environment.",
-  );
 async function call(path, body) {
   return fetch(new URL(path, base), {
     method: body ? "POST" : "GET",
@@ -45,7 +44,7 @@ assert.equal(
 );
 assert.equal(
   authorizationURL.searchParams.get("redirect_uri"),
-  new URL(`/api/auth/callback/${provider}`, base).href,
+  new URL(`/api/auth/callback/${provider}`, provider === "google" ? env.GOOGLE_AUTH_URL || base : base).href,
 );
 console.log(
   "PASS: protected access, unauthenticated session, disabled password authentication, provider authorization URL. Real OAuth consent requires manual testing.",

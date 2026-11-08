@@ -7,11 +7,13 @@ import { expoClient } from "@better-auth/expo/client";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL;
-if (!baseURL)
-  throw new Error("Configure production and its API URL in apps/mobile/.env.local, then start through npm.");
+import { apiUrl } from "./api-url";
+
 export const authClient = createAuthClient({
-  baseURL,
+  baseURL: apiUrl,
+  fetchOptions: { timeout: 15000 },
+  // AppState refreshes are coordinated with the sign-in flow in session.ts.
+  sessionOptions: { refetchOnWindowFocus: false },
   plugins: [
     anonymousClient(),
     inferAdditionalFields({

@@ -1,6 +1,5 @@
 import { Hono, type Context } from "hono";
 import { createAuth, type AuthBindings } from "../../auth";
-import { localPreviewOwner } from "../../lib/preview-owner";
 import {
   ChoiceConflict,
   getProblemDetail,
@@ -16,8 +15,6 @@ const uuid =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function resolveOwner(c: ProblemContext) {
-  const previewOwner = localPreviewOwner(c.env, c.req.raw);
-  if (previewOwner) return { userId: previewOwner, preview: true };
   const session = await createAuth(c.env).api.getSession({
     headers: c.req.raw.headers,
   });

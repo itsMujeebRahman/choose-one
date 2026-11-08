@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
-import { networkInterfaces } from "node:os";
 import { resolve } from "node:path";
 import { readEnv, selectedApiUrl, expoDefaultPort, root } from "./env.config.mjs";
 
@@ -37,21 +36,9 @@ if (command !== "export" && !args.includes("--help")) {
 let cli;
 let cliArgs;
 if (workspace === "api") {
-  env.BETTER_AUTH_URL = apiUrl.value;
-  const hosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
-  for (const addresses of Object.values(networkInterfaces())) {
-    for (const address of addresses ?? []) {
-      if (address.family === "IPv4") hosts.add(address.address);
-    }
-  }
-  env.CORS_ORIGINS = [...hosts]
-    .map((host) => `http://${host}:${expoDefaultPort}`)
-    .join(",");
   cli = resolve(root, "apps/api/dev.mjs");
   cliArgs = args;
 } else {
-  // Expo requires EXPO_PUBLIC_ for values embedded into the mobile bundle.
-  env.EXPO_PUBLIC_API_URL = apiUrl.value;
   cli = require.resolve("expo/bin/cli");
   cliArgs = [command, ...args];
 }

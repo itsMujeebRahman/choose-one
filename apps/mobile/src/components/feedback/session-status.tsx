@@ -3,7 +3,7 @@ import FightLoader from "./fight-loader";
 import { useThemeStyles } from "../../theme/theme";
 import { fonts, type ThemeColors } from "../../theme/tokens";
 
-export default function SessionStatus({ retry }: { retry?: () => void }) {
+export default function SessionStatus({ retry, message }: { retry?: () => void; message?: string }) {
   const [s] = useThemeStyles(createStyles);
   return (
     <View style={s.page}>
@@ -14,6 +14,7 @@ export default function SessionStatus({ retry }: { retry?: () => void }) {
       ) : (
         <FightLoader style={s.loader} />
       )}
+      {message ? <Text accessibilityLiveRegion="polite" style={s.message}>{message}</Text> : null}
     </View>
   );
 }
@@ -29,6 +30,7 @@ const createStyles = (c: ThemeColors) =>
       gap: 20,
     },
     loader: { width: "100%", maxWidth: 280 },
+    message: { fontFamily: fonts.medium, color: c.ink, fontSize: 16, textAlign: "center" },
     button: {
       backgroundColor: c.ink,
       borderRadius: 999,
