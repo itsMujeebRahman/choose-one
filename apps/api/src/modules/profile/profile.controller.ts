@@ -1,6 +1,10 @@
 import { Hono, type Context } from "hono";
 import type { AuthBindings } from "../../auth";
-import { getCurrentProfile, updateUserProfile } from "./profile.service";
+import {
+  deleteUserAccount,
+  getCurrentProfile,
+  updateUserProfile,
+} from "./profile.service";
 
 type ProfileContext = Context<{ Bindings: AuthBindings }>;
 
@@ -67,9 +71,21 @@ export async function updateProfile(c: ProfileContext) {
   }
 }
 
+export async function deleteProfile(c: ProfileContext) {
+  c.header("Cache-Control", "no-store");
+  try {
+    const deleted = await deleteUserAccount(c.env, c.req.raw.headers);
+    if (!deleted) return c.json({ error: "Please sign in." }, 401);
+    return c.json({ deleted: true });
+  } catch {
+    return c.json({ error: "Couldn’t delete your account. Please try again." }, 503);
+  }
+}
+
 export const profileController = new Hono<{ Bindings: AuthBindings }>();
 profileController.get("/profile", getProfile);
 profileController.get("/me", getProfile);
 profileController.patch("/profile", updateProfile);
 profileController.post("/profile", updateProfile);
 profileController.put("/profile", updateProfile);
+profileController.delete("/profile", deleteProfile);

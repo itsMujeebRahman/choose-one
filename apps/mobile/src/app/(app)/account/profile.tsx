@@ -16,8 +16,9 @@ import { toast } from "sonner-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import FightLoader from "../../../components/feedback/fight-loader";
 import ProfilePage from "../../../components/profile/profile-page";
-import { useAppSession } from "../../../lib/session";
-import { useUpdateProfileMutation } from "../../../services/profile";
+import { endSession, useAppSession } from "../../../lib/session";
+import ConfirmModal from "../../../components/confirm-modal";
+import { deleteProfile, useUpdateProfileMutation } from "../../../services/profile";
 import { fonts as f, type ThemeColors } from "../../../theme/tokens";
 import { useTheme, useThemeStyles } from "../../../theme/theme";
 
@@ -31,6 +32,8 @@ export default function AccountProfileScreen() {
   const [nameInput, setNameInput] = useState(session?.user?.name ?? "");
   const [isSavingName, setIsSavingName] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!session) return null;
   if (session.user.isAnonymous) return <Redirect href="/profile" />;
@@ -128,6 +131,20 @@ export default function AccountProfileScreen() {
       toast.error(message);
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteProfile();
+      await endSession({ notify: false });
+      toast.success("Your account and data have been deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn’t delete your account.");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -308,7 +325,24 @@ export default function AccountProfileScreen() {
               {session.user.email}
             </Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setShowDeleteModal(true)}
+            style={({ pressed }) => [s.deleteButton, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={s.deleteButtonText}>Delete account</Text>
+          </Pressable>
         </ScrollView>
+        <ConfirmModal
+          visible={showDeleteModal}
+          heading="Delete your account?"
+          bodyText="This permanently deletes your account, profile, decisions, and choice lists. This cannot be undone."
+          confirmText="Delete account"
+          confirmColor={c.error}
+          loading={isDeleting}
+          onConfirm={handleDeleteAccount}
+          onCancel={() => setShowDeleteModal(false)}
+        />
       </KeyboardAvoidingView>
     </ProfilePage>
   );
@@ -461,4 +495,13 @@ const createStyles = (c: ThemeColors) =>
       color: c.surface,
     },
     divider: { height: 1, backgroundColor: c.border, marginVertical: 10 },
+    deleteButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 52,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: c.error,
+    },
+    deleteButtonText: { fontFamily: f.medium, fontSize: 16, color: c.error },
   });

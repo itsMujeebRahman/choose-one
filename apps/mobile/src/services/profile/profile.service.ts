@@ -30,3 +30,7 @@ export async function updateProfile(
   });
   return result.user;
 }
+
+export async function deleteProfile(): Promise<void> {
+  await apiClient<{ deleted: true }>("/api/profile", { method: "DELETE" });
+}

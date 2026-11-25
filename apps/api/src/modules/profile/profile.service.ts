@@ -49,3 +49,13 @@ export async function updateUserProfile(
 
   return updated ?? null;
 }
+
+export async function deleteUserAccount(env: AuthBindings, headers: Headers) {
+  if (!env.BETTER_AUTH_SECRET || !apiUrl(env) || !env.DATABASE_URL)
+    return false;
+  const session = await createAuth(env).api.getSession({ headers });
+  if (!session?.user?.id) return false;
+  const db = getDb(env.DATABASE_URL);
+  await db.delete(user).where(eq(user.id, session.user.id));
+  return true;
+}
