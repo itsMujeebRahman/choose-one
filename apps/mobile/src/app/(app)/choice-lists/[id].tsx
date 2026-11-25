@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { toast } from "sonner-native";
@@ -209,7 +203,9 @@ export default function ChoiceListScreen() {
       draftOptions.length !== remaining.length ||
       draftOptions.some((draft, i) => {
         const orig = remaining[i];
-        return !orig || draft.id !== orig.id || draft.label.trim() !== orig.label;
+        return (
+          !orig || draft.id !== orig.id || draft.label.trim() !== orig.label
+        );
       });
 
     if (!titleChanged && !optionsChanged) {
@@ -389,7 +385,9 @@ export default function ChoiceListScreen() {
             )}
 
             <Text style={s.cardMeta}>
-              {(list.roundNumber ?? 1) > 1 ? `Round ${list.roundNumber} • ` : ""}
+              {(list.roundNumber ?? 1) > 1
+                ? `Round ${list.roundNumber} • `
+                : ""}
               {list.pickCount} of {list.optionCount} chosen - {remaining.length}{" "}
               left to try
             </Text>
@@ -418,8 +416,8 @@ export default function ChoiceListScreen() {
                   onPress={pick}
                 />
                 <Text style={s.caption}>
-                  Pick again whenever you’re ready, today or another day. Previous
-                  picks won’t repeat.
+                  Pick again whenever you’re ready, today or another day.
+                  Previous picks won’t repeat.
                 </Text>
               </View>
             ) : (
@@ -431,7 +429,8 @@ export default function ChoiceListScreen() {
                 </Text>
                 <Text style={s.completedBody}>
                   Every option in this round has had its turn. Start a new round
-                  to try them all again, keeping your previous results in history.
+                  to try them all again, keeping your previous results in
+                  history.
                 </Text>
                 <DecisionButton
                   label={

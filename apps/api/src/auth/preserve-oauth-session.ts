@@ -2,9 +2,6 @@ import type { BetterAuthPlugin } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
 import { parseSetCookieHeader, setSessionCookie } from "better-auth/cookies";
 
-// Better Auth 1.7.18's anonymous after-hook can expire the new OAuth cookie
-// when it reads a revoked session left in the browser after native logout.
-// Run after anonymous(), before expo() copies cookies into the app callback.
 export function preserveOAuthSession(): BetterAuthPlugin {
   return {
     id: "preserve-oauth-session",

@@ -26,7 +26,11 @@ function setSigningIn(value: boolean) {
   signInListeners.forEach((listener) => listener());
 }
 
-function setActiveSession(data: NonNullable<ReturnType<typeof authClient.$store.atoms.session.get>["data"]>) {
+function setActiveSession(
+  data: NonNullable<
+    ReturnType<typeof authClient.$store.atoms.session.get>["data"]
+  >,
+) {
   const session = authClient.$store.atoms.session;
   session.set({
     ...session.get(),
