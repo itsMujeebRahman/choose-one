@@ -79,7 +79,7 @@ export async function apiClient<T>(
 
     if (!response.ok) {
       if (response.status === 401) {
-        void endSession().catch(() => {});
+        void endSession({ notify: false }).catch(() => {});
       }
       const message =
         (data &&

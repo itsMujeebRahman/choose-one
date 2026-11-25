@@ -112,6 +112,7 @@ function harness() {
       },
     },
     react: {
+      useEffect: (effect) => effect(),
       useSyncExternalStore: (_, get) => get(),
       useMemo: (compute) => compute(),
     },
@@ -162,7 +163,7 @@ function harness() {
   };
 }
 
-test("logout aborts and drains ignored network cancellation before clearing local session", async () => {
+test("logout clears local session immediately and aborts active requests", async () => {
   const h = harness();
   const started = deferred();
   const lateResponse = deferred();
@@ -184,18 +185,16 @@ test("logout aborts and drains ignored network cancellation before clearing loca
   assert.equal(h.session.useLogoutStatus(), "pending");
   assert.equal(signal.aborted, true);
   assert.equal((await oldRequest).name, "AbortError");
-  await new Promise(setImmediate);
-  assert.equal(h.signOutCount(), 0);
-  assert.equal(h.state().data.session.id, "old");
+  assert.equal(h.signOutCount(), 1);
+  assert.equal(h.state().data, null);
   assert.throws(() => h.session.beginSessionRequest(), /Sign-out/);
-  cleanup.resolve();
   await logout;
   assert.equal(h.session.useLogoutStatus(), "idle");
   assert.equal(h.state().data, null);
   assert.ok(h.events.indexOf("guest-clear") < h.events.indexOf("sign-out"));
-  assert.ok(h.events.indexOf("confirm") < h.events.indexOf("session-clear"));
   // An immediate new login survives a response from the old request.
   h.login();
+  cleanup.resolve();
   lateResponse.resolve({
     ok: false,
     status: 401,
@@ -206,19 +205,12 @@ test("logout aborts and drains ignored network cancellation before clearing loca
   assert.equal(h.state().data.session.id, "new");
 });
 
-test("failed confirmation stays gated and retry completes before a new sign-in", async () => {
+test("a server sign-out error still exposes the login flow", async () => {
   const h = harness();
-  h.confirm({ data: { session: { id: "still-active" } }, error: null });
-  await assert.rejects(h.session.endSession(), /confirm sign-out/);
-  assert.equal(h.session.useLogoutStatus(), "failed");
-  await assert.rejects(
-    h.session.signInWithProvider("google"),
-    /Finish signing out/,
-  );
-  assert.throws(() => h.session.beginSessionRequest(), /Sign-out/);
-  h.confirm({ data: null, error: null });
+  h.signOutError({ message: "Backend unavailable" });
   await h.session.endSession();
   assert.equal(h.session.useLogoutStatus(), "idle");
+  assert.equal(h.state().data, null);
   h.login();
   h.network(async () => ({
     ok: true,
@@ -228,25 +220,15 @@ test("failed confirmation stays gated and retry completes before a new sign-in",
   assert.equal((await h.api.apiClient("/api/profile")).user, "new-user");
 });
 
-test("storage cleanup failure keeps the gate closed without revoking the session", async () => {
+test("guest storage cleanup failure does not prevent local logout", async () => {
   const h = harness();
   h.cleanup(async () => {
     throw new Error("Storage unavailable");
   });
-  await assert.rejects(h.session.endSession(), /Storage unavailable/);
-  assert.equal(h.signOutCount(), 0);
-  assert.equal(h.session.useLogoutStatus(), "failed");
-  h.cleanup(async () => {});
   await h.session.endSession();
   assert.equal(h.session.useLogoutStatus(), "idle");
-});
-
-test("backend sign-out failure does not expose the auth page", async () => {
-  const h = harness();
-  h.signOutError({ message: "Backend unavailable" });
-  await assert.rejects(h.session.endSession(), /Backend unavailable/);
-  assert.equal(h.session.useLogoutStatus(), "failed");
-  assert.ok(!h.events.includes("confirm"));
+  assert.equal(h.state().data, null);
+  assert.equal(h.signOutCount(), 1);
 });
 
 test("sign-in stays pending across browser return until the server confirms the session", async () => {
@@ -284,6 +266,19 @@ test("a failed browser sign-in releases the loader without creating a session", 
   await assert.rejects(h.session.signInWithProvider("google"), /cancelled/);
   assert.equal(h.session.useAppSession().isPending, false);
   assert.equal(h.session.useAppSession().data, null);
+});
+
+test("a session restoration failure automatically signs out", async () => {
+  const h = harness();
+  h.confirm({ data: null, error: null });
+
+  h.session.useLogoutOnSessionRestoreFailure(new Error("Session expired"));
+  await new Promise(setImmediate);
+
+  assert.equal(h.state().data, null);
+  assert.equal(h.session.useLogoutStatus(), "idle");
+  assert.equal(h.signOutCount(), 1);
+  assert.ok(!h.events.includes("logout-toast"));
 });
 
 test("API requests cannot bypass the configured API URL", async () => {

@@ -9,7 +9,7 @@ import {
   subscribeGuestName,
 } from "./guest-storage";
 
-let logoutStatus: "idle" | "pending" | "failed" = "idle";
+let logoutStatus: "idle" | "pending" = "idle";
 const logoutListeners = new Set<() => void>();
 let logoutRequest: ReturnType<typeof performLogout> | null = null;
 let sessionRevision = 0;
@@ -174,6 +174,18 @@ export function useSessionRefresh() {
   }, []);
 }
 
+// A failed session read means the credentials we restored are no longer usable.
+// Handle it above the route layouts so neither the auth nor app tree can retain
+// a stale native cookie/session.
+export function useLogoutOnSessionRestoreFailure(error: unknown) {
+  useEffect(() => {
+    if (!error || signingIn || logoutStatus !== "idle") return;
+    void endSession({ notify: false }).catch(() => {
+      // A sign-in race can reject; local session state has already been cleared.
+    });
+  }, [error]);
+}
+
 export function useAppSession() {
   const result = authClient.useSession();
   const isSigningIn = useSyncExternalStore(
@@ -218,49 +230,30 @@ export function useAppSession() {
 async function performLogout() {
   setLogoutStatus("pending");
   sessionRevision++;
-  const requests = [...sessionRequests.entries()];
-  requests.forEach(([controller]) => controller.abort());
+  sessionRequests.forEach((_, controller) => controller.abort());
+  queryClient.clear();
+  void clearGuestName().catch(() => {});
+
+  // Local state is the source of truth for routing. Clear it immediately so a
+  // missing or unreachable server session always returns the user to login.
+  const session = authClient.$store.atoms.session;
+  session.set({
+    ...session.get(),
+    data: null,
+    error: null,
+    isPending: false,
+    isRefetching: false,
+  });
+
+  // Revocation is best-effort. It must never trap someone on an error screen.
   try {
-    await Promise.all([
-      queryClient.cancelQueries(),
-      ...requests.map(([, settled]) => settled),
-    ]);
-    if (sessionRequests.size)
-      throw new Error("Requests are still stopping. Please retry sign-out.");
-    queryClient.clear();
-    await clearGuestName();
-    // Cancel/drain an older auth refresh before the final server sign-out.
-    await authClient.$store.atoms.session
-      .get()
-      .refetch({ query: { disableCookieCache: true } });
-    const result = await authClient.signOut({
-      fetchOptions: { timeout: 15000 },
-    });
-    if (result.error)
-      throw new Error(result.error.message ?? "Couldn’t sign out.");
-    const confirmed = await authClient.getSession({
-      query: { disableCookieCache: true },
-      fetchOptions: { timeout: 15000 },
-    });
-    if (confirmed.error || confirmed.data)
-      throw new Error("Couldn’t confirm sign-out. Please try again.");
-    const session = authClient.$store.atoms.session;
-    session.set({
-      ...session.get(),
-      data: null,
-      error: null,
-      isPending: false,
-      isRefetching: false,
-    });
-    queryClient.clear();
-    return result;
-  } catch (error) {
-    setLogoutStatus("failed");
-    throw error;
+    await authClient.signOut({ fetchOptions: { timeout: 15000 } });
+  } catch {
+    // The next session check remains logged out locally.
   }
 }
 
-export function endSession() {
+export function endSession({ notify = true }: { notify?: boolean } = {}) {
   if (signingIn)
     return Promise.reject(new Error("Finish signing in before signing out."));
   if (!logoutRequest) {
@@ -268,7 +261,7 @@ export function endSession() {
       (result) => {
         logoutRequest = null;
         setLogoutStatus("idle");
-        toast.success("You’ve signed out.");
+        if (notify) toast.success("You’ve signed out.");
         return result;
       },
       (error: unknown) => {
