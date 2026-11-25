@@ -7,7 +7,7 @@ import { expo } from "@better-auth/expo";
 import { parseSetCookieHeader } from "better-auth/cookies";
 import { preserveOAuthSession } from "../src/auth/preserve-oauth-session.ts";
 
-const base = "http://localhost:13001";
+const base = "https://auth.example.test";
 const callbackURL = "chooseone:///auth";
 function cookieHeader(header) {
   return [...parseSetCookieHeader(header ?? "")]

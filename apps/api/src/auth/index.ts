@@ -1,6 +1,6 @@
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { expo } from "@better-auth/expo";
 import { anonymous } from "better-auth/plugins";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "../database/schema";
@@ -26,10 +26,7 @@ export function allowedOrigins(env: AuthBindings) {
   if (baseURL) {
     const url = new URL(baseURL);
     origins.add(url.origin);
-    if (url.protocol === "http:") origins.add(`http://${url.hostname}:8081`);
   }
-  for (const host of ["localhost", "127.0.0.1", "[::1]"])
-    origins.add(`http://${host}:8081`);
   return [...origins];
 }
 

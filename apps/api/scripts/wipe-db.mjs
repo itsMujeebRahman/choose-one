@@ -7,8 +7,6 @@ import { stdin as input, stdout as output } from "node:process";
 import { spawnSync } from "node:child_process";
 import { neon } from "@neondatabase/serverless";
 
-import { expoDefaultPort } from "../../../env.config.mjs";
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const apiDir = resolve(__dirname, "..");
 
@@ -162,44 +160,5 @@ function clearLocalStorageAndCaches() {
     }
   }
 
-  if (process.platform === "darwin") {
-    const browsers = [
-      {
-        name: "Google Chrome",
-        script: (target) =>
-          `tell application "Google Chrome" to repeat with w in windows\nrepeat with t in tabs of w\nif URL of t starts with "${target}" then tell t to execute javascript "localStorage.clear(); sessionStorage.clear(); location.reload();"\nend repeat\nend repeat`,
-      },
-      {
-        name: "Safari",
-        script: (target) =>
-          `tell application "Safari" to repeat with w in windows\nrepeat with t in tabs of w\nif URL of t starts with "${target}" then tell t to do JavaScript "localStorage.clear(); sessionStorage.clear(); location.reload();"\nend repeat\nend repeat`,
-      },
-      {
-        name: "Arc",
-        script: (target) =>
-          `tell application "Arc" to repeat with w in windows\nrepeat with t in tabs of w\nif URL of t starts with "${target}" then tell t to execute javascript "localStorage.clear(); sessionStorage.clear(); location.reload();"\nend repeat\nend repeat`,
-      },
-      {
-        name: "Brave Browser",
-        script: (target) =>
-          `tell application "Brave Browser" to repeat with w in windows\nrepeat with t in tabs of w\nif URL of t starts with "${target}" then tell t to execute javascript "localStorage.clear(); sessionStorage.clear(); location.reload();"\nend repeat\nend repeat`,
-      },
-    ];
-
-    for (const b of browsers) {
-      try {
-        spawnSync(
-          "osascript",
-          ["-e", b.script(`http://localhost:${expoDefaultPort}`)],
-          {
-            stdio: "ignore",
-          },
-        );
-      } catch {
-        // Ignore AppleScript execution failures
-      }
-    }
-  }
-
-  console.log("✓ Local storage cleared!");
+  console.log("✓ Local development caches cleared!");
 }
