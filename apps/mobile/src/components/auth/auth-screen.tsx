@@ -1,4 +1,8 @@
-import { signInWithProvider, useAppSession } from "../../lib/session";
+import {
+  signInAnonymously,
+  signInWithProvider,
+  useAppSession,
+} from "../../lib/session";
 import { useErrorToast } from "../../hooks/use-error-toast";
 import SocialIcon from "./social-icon";
 import { toast } from "sonner-native";
@@ -16,7 +20,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 import Svg, { Circle, Path } from "react-native-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { authClient } from "../../lib/auth-client";
 import FightLoader from "../feedback/fight-loader";
 import { fonts as f, radius, type ThemeColors } from "../../theme/tokens";
 import { useThemeStyles } from "../../theme/theme";
@@ -61,7 +64,7 @@ export function MoodGarden({ compact = false }: { compact?: boolean }) {
 export default function AuthScreen() {
   const [s, c] = useThemeStyles(createStyles);
   const { width } = useWindowDimensions();
-  const { data: session, refetch } = useAppSession();
+  const { data: session } = useAppSession();
   const isGuest = Boolean(session?.user?.isAnonymous);
   const wide = width >= 900;
   const [busy, setBusy] = useState<"google" | "apple" | "guest" | null>(null);
@@ -83,15 +86,14 @@ export default function AuthScreen() {
     }
     setBusy("guest");
     try {
-      const result = await authClient.signIn.anonymous();
-      if (result?.error) {
-        reportError(result.error.message ?? "Couldn’t continue as guest.");
-      } else {
-        await refetch();
-        router.replace("/complete-profile");
-      }
-    } catch {
-      reportError("Couldn’t connect as guest. Please try again.");
+      await signInAnonymously();
+      router.replace("/complete-profile");
+    } catch (error) {
+      reportError(
+        error instanceof Error
+          ? error.message
+          : "Couldn’t connect as guest. Please try again.",
+      );
     } finally {
       setBusy(null);
     }

@@ -61,6 +61,10 @@ function harness() {
       return confirmation;
     },
     signIn: {
+      anonymous: async () => {
+        events.push("guest-sign-in");
+        return { error: null };
+      },
       social: async (options) => {
         assert.equal(options.callbackURL, "chooseone:///auth");
         events.push("sign-in");
@@ -266,6 +270,23 @@ test("a failed browser sign-in releases the loader without creating a session", 
   await assert.rejects(h.session.signInWithProvider("google"), /cancelled/);
   assert.equal(h.session.useAppSession().isPending, false);
   assert.equal(h.session.useAppSession().data, null);
+});
+
+test("guest sign-in waits for a verified session", async () => {
+  const h = harness();
+  h.confirm({
+    data: {
+      session: { id: "guest-session" },
+      user: { id: "guest", isAnonymous: true, nameConfirmed: false },
+    },
+    error: null,
+  });
+
+  await h.session.signInAnonymously();
+
+  assert.equal(h.state().data.session.id, "guest-session");
+  assert.equal(h.state().data.user.isAnonymous, true);
+  assert.ok(h.events.includes("guest-sign-in"));
 });
 
 test("a session restoration failure automatically signs out", async () => {

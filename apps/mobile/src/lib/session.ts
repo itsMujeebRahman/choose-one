@@ -26,6 +26,17 @@ function setSigningIn(value: boolean) {
   signInListeners.forEach((listener) => listener());
 }
 
+function setActiveSession(data: NonNullable<ReturnType<typeof authClient.$store.atoms.session.get>["data"]>) {
+  const session = authClient.$store.atoms.session;
+  session.set({
+    ...session.get(),
+    data,
+    error: null,
+    isPending: false,
+    isRefetching: false,
+  });
+}
+
 export async function signInWithProvider(provider: "google" | "apple") {
   if (signingIn) return;
   setSigningIn(true);
@@ -85,14 +96,7 @@ export async function signInWithProvider(provider: "google" | "apple") {
           restored.error.message ?? "Couldn’t restore your session.",
         );
       if (restored.data) {
-        const session = authClient.$store.atoms.session;
-        session.set({
-          ...session.get(),
-          data: restored.data,
-          error: null,
-          isPending: false,
-          isRefetching: false,
-        });
+        setActiveSession(restored.data);
         return;
       }
       if (attempt < 2)
@@ -105,6 +109,31 @@ export async function signInWithProvider(provider: "google" | "apple") {
     );
   } finally {
     callbackListener?.remove();
+    setSigningIn(false);
+  }
+}
+
+export async function signInAnonymously() {
+  if (signingIn) return;
+  setSigningIn(true);
+  try {
+    if (logoutRequest) await logoutRequest;
+    if (logoutStatus !== "idle")
+      throw new Error("Please wait for sign-out to finish.");
+
+    const result = await authClient.signIn.anonymous();
+    if (result.error)
+      throw new Error(result.error.message ?? "Couldn’t continue as guest.");
+
+    const restored = await authClient.getSession({
+      query: { disableCookieCache: true },
+    });
+    if (restored.error || !restored.data)
+      throw new Error(
+        restored.error?.message ?? "Couldn’t start the guest session.",
+      );
+    setActiveSession(restored.data);
+  } finally {
     setSigningIn(false);
   }
 }
